@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Giat Patroli Security</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+  <!-- HEADER -->
+  <header class="judul">
+    <!-- FOTO AVATAR USER -->
+    <div class="avatar-foto">
+        <img src="https://cdn-icons-png.flaticon.com/512/149/149071.png" alt="User" />
+    </div>
+    <h1>Giat Patroli Security</h1>
+  </header>
+
+  
+
+
+  <div class="container">
+    
+
+    <!-- IDENTITAS -->
+    <div class="identitas">
+      <div><strong>NIP:</strong> <span id="nip">-</span></div>
+      <div class="besar"><strong>Nama:</strong> <span id="nama">-</span></div>
+      <div class="besar"><strong>Perusahaan:</strong> <span id="perusahaan">-</span></div>
+    </div>
+
+    <!-- WAKTU & LOKASI -->
+    <div class="info-waktu">
+      <div><strong>Tanggal:</strong> <span id="tanggal">-</span></div>
+      <div><strong>Jam:</strong> <span id="jam">-</span></div>
+      <div><strong>Lokasi:</strong> <span id="lokasi">-</span></div>
+    </div>
+
+    <!-- FORM -->
+    <form id="absenForm">
+      <button type="button" onclick="scanQRCode()">🔍 Scan QR Code</button>
+      <div id="qrResult"></div>
+      <div id="reader" style="width: 300px; margin-top: 15px;"></div>
+
+      <button type="button" onclick="ambilFoto()">📸 Ambil Foto</button>
+
+      <!-- FOTO -->
+    <div class="foto-preview" id="previewFoto">
+      <span>📸 Foto akan tampil di sini</span>
+    </div>
+
+      <textarea id="keterangan" placeholder="Keterangan" rows="3"></textarea>
+
+      <button type="submit">Kirim Absensi</button>
+    </form>
+
+    <div id="status"></div>
+
+  </div>
+
+  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+  <script src="utils.js"></script>
+  <script src="form.js"></script>
+</body>
+</html>

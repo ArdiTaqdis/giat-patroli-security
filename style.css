@@ -1,0 +1,133 @@
+body {
+  font-family: Arial, sans-serif;
+  background: #e3f2fd;
+  margin: 0;
+  padding: 0;
+}
+
+.judul {
+  background: #0d47a1;
+  color: white;
+  padding: 20px;
+  text-align: center;
+  border-bottom: 4px solid #1976d2;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  margin-bottom: 15px;
+}
+
+.judul h1 {
+  margin: 0;
+  font-size: 22px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.container {
+  background: white;
+  max-width: 460px;
+  margin: auto;
+  padding: 25px;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+/* .foto-preview {
+  width: 100%;
+  height: 100px;
+  background: #f0f0f0;
+  border: 2px dashed #aaa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  object-fit: cover;
+  margin-bottom: 15px;
+  border-radius: 10px;
+  text-align: center;
+  font-size: 14px;
+  color: #666;
+} */
+
+.foto-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 10px;
+}
+
+.identitas, .info-waktu {
+  font-size: 14px;
+  line-height: 1.6;
+  margin-bottom: 15px;
+}
+
+.besar {
+  font-size: 18px;
+  margin-top: 4px;
+}
+
+textarea {
+  width: 100%;
+  padding: 10px;
+  margin-top: 12px;
+  font-size: 16px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  resize: vertical;
+}
+
+button {
+  display: block;
+  width: 100%;
+  margin: 10px 0;
+  padding: 12px;
+  font-size: 16px;
+  border-radius: 8px;
+  border: none;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+button[type="button"] {
+  background: #0288d1;
+}
+
+button[type="button"]:hover {
+  background: #0277bd;
+}
+
+button[type="submit"] {
+  background: #2e7d32;
+}
+
+button[type="submit"]:hover {
+  background: #1b5e20;
+}
+
+button:active {
+  transform: scale(0.97);
+}
+
+#qrResult, #status {
+  text-align: center;
+  font-weight: bold;
+  margin-top: 8px;
+  font-size: 14px;
+}
+
+.avatar-foto {
+  text-align: center;
+  margin-bottom: 15px;
+}
+
+.avatar-foto img {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  border: 3px solid #1976d2;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+
+
+
