@@ -43,6 +43,9 @@
       <button type="button" onclick="scanQRCode()">🔍 Scan QR Code</button>
       <div id="qrResult"></div>
       <div id="reader" style="width: 300px; margin-top: 15px;"></div>
+      <label for="qrCodeText">Hasil Scan QR Code:</label>
+      <textarea id="qrCodeText" rows="2" readonly></textarea>
+
 
       <button type="button" onclick="ambilFoto()">📸 Ambil Foto</button>
 
@@ -63,5 +66,49 @@
   <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
   <script src="utils.js"></script>
   <script src="form.js"></script>
+  <!-- SPINNER LOADING -->
+<div id="loadingOverlay">
+  <div class="spinner"></div>
+</div>
+
+<style>
+  #loadingOverlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    background-color: rgba(255,255,255,0.85);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .spinner {
+    width: 60px;
+    height: 60px;
+    border: 6px solid #ccc;
+    border-top: 6px solid #2196f3;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+  @keyframes spin {
+    0% { transform: rotate(0deg);}
+    100% { transform: rotate(360deg);}
+  }
+</style>
+
+<div id="loadingOverlay" style="
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(255,255,255,0.8);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  font-size: 1.5em;
+  color: #333;">
+  ⏳ Loading data...
+</div>
+
+
 </body>
 </html>
