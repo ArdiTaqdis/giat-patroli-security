@@ -1,4 +1,4 @@
-const URL_SCRIPT = "https://script.google.com/macros/s/AKfycbzTbkZUFbV0coqNgh_5qqH7xIOtck_gvNODyJUZPfERPmKth6TmFixFPyuiruXP2B_1SA/exec";
+const URL_SCRIPT = "https://script.google.com/macros/s/AKfycbx9uVwFtYI4GQydAA4CDAlX2j6IeJo6y5vfvOdN31UHrHPJyw0koVSYIKRjnTxJsOx4vQ/exec";
 
 document.getElementById("formUser").addEventListener("submit", async function (e) {
   e.preventDefault();
