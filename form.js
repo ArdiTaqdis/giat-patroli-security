@@ -2,6 +2,10 @@
 const scriptURL = "https://script.google.com/macros/s/AKfycbx9uVwFtYI4GQydAA4CDAlX2j6IeJo6y5vfvOdN31UHrHPJyw0koVSYIKRjnTxJsOx4vQ/exec";
 
 document.addEventListener("DOMContentLoaded", function () {
+  // 🧼 Bersihkan sisa data QR & Foto saat buka form
+  localStorage.removeItem("fotoAbsen");
+  localStorage.removeItem("qrText");
+
   const nipLogin = localStorage.getItem("nipLogin");
   if (!nipLogin) {
     alert("Silakan login terlebih dahulu.");
@@ -38,7 +42,7 @@ document.addEventListener("DOMContentLoaded", function () {
       document.getElementById("loadingOverlay").style.display = "none";
     });
 
-  // Lokasi otomatis setelah 1.5 detik
+  // Lokasi otomatis
   setTimeout(() => {
     const lokasiEl = document.getElementById("lokasi");
     lokasiEl.innerText = "📍 Mengambil lokasi...";
@@ -56,12 +60,6 @@ document.addEventListener("DOMContentLoaded", function () {
       lokasiEl.innerText = "❌ Geolokasi tidak didukung";
     }
   }, 1500);
-
-  // Restore preview
-  const foto = localStorage.getItem("fotoAbsen");
-  const qr = localStorage.getItem("qrText");
-  if (foto) document.getElementById("previewFoto").innerHTML = `<img src="${foto}" style="width:100%; border-radius:10px;" />`;
-  if (qr) document.getElementById("qrResult").innerHTML = `<strong>✅ QR Terdeteksi:</strong> ${qr}`;
 });
 
 // 🔍 Konversi koordinat ke alamat
@@ -148,41 +146,42 @@ if (form) {
     }
 
     const formBody = new URLSearchParams();
-formBody.append("action", "absen");
-formBody.append("nip", nip);
-formBody.append("nama", nama);
-formBody.append("perusahaan", perusahaan);
-formBody.append("tanggal", tanggal);
-formBody.append("jam", jam);
-formBody.append("lokasi", lokasi);
-formBody.append("qr", qr);
-formBody.append("keterangan", keterangan);
-formBody.append("foto", fotoBase64);
+    formBody.append("action", "absen");
+    formBody.append("nip", nip);
+    formBody.append("nama", nama);
+    formBody.append("perusahaan", perusahaan);
+    formBody.append("tanggal", tanggal);
+    formBody.append("jam", jam);
+    formBody.append("lokasi", lokasi);
+    formBody.append("qr", qr);
+    formBody.append("keterangan", keterangan);
+    formBody.append("foto", fotoBase64);
 
-document.getElementById("status").innerText = "⏳ Mengirim data...";
+    document.getElementById("status").innerText = "⏳ Mengirim data...";
 
-try {
-  const res = await fetch(scriptURL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded"
-    },
-    body: formBody.toString()
+    try {
+      const res = await fetch(scriptURL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded"
+        },
+        body: formBody.toString()
+      });
+
+      const text = await res.text();
+      document.getElementById("status").innerText = text;
+
+      // ✅ Hapus data setelah submit
+      localStorage.removeItem("fotoAbsen");
+      localStorage.removeItem("qrText");
+      document.getElementById("previewFoto").innerHTML = `<span>✅ Terkirim</span>`;
+      document.getElementById("qrResult").innerHTML = "";
+
+      if (text.includes("berhasil")) {
+        setTimeout(() => window.location.href = "index.html", 2500);
+      }
+    } catch (err) {
+      document.getElementById("status").innerText = "❌ Gagal mengirim: " + err.message;
+    }
   });
-
-  const text = await res.text();
-  document.getElementById("status").innerText = text;
-  localStorage.removeItem("fotoAbsen");
-  localStorage.removeItem("qrText");
-  document.getElementById("previewFoto").innerHTML = `<span>✅ Terkirim</span>`;
-  document.getElementById("qrResult").innerHTML = "";
-
-  if (text.includes("berhasil")) {
-    setTimeout(() => window.location.href = "index.html", 2500);
-  }
-} catch (err) {
-  document.getElementById("status").innerText = "❌ Gagal mengirim: " + err.message;
-}
-});
-  
 }
