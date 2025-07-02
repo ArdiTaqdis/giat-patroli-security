@@ -6,10 +6,10 @@ document.addEventListener("DOMContentLoaded", function () {
     return;
   }
 
-  // ⏳ Tampilkan loading spinner
+  // Tampilkan loading overlay
   document.getElementById("loadingOverlay").style.display = "flex";
 
-  // Tanggal dan jam
+  // Tanggal & Jam
   const now = new Date();
   document.getElementById("tanggal").innerText = now.toLocaleDateString("id-ID");
   updateJam();
@@ -19,27 +19,24 @@ document.addEventListener("DOMContentLoaded", function () {
     document.getElementById("jam").innerText = new Date().toLocaleTimeString("id-ID");
   }
 
-  // 📍 Ambil lokasi & ubah jadi alamat dengan OpenCage
+  // Lokasi & OpenCage
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(
-  (pos) => {
-    const lat = pos.coords.latitude.toFixed(5);
-    const lon = pos.coords.longitude.toFixed(5);
-    getAlamatFromKoordinat(lat, lon); // Panggil OpenCage
-  },
-  () => {
-    document.getElementById("lokasi").innerText = "Tidak tersedia";
-  }
-);
-
+      (pos) => {
+        const lat = pos.coords.latitude.toFixed(5);
+        const lon = pos.coords.longitude.toFixed(5);
+        getAlamatFromKoordinat(lat, lon);
+      },
+      () => document.getElementById("lokasi").innerText = "Tidak tersedia"
+    );
   } else {
     document.getElementById("lokasi").innerText = "Tidak didukung";
   }
 
-  // Ambil data user
+  // Data user
   fetch(`https://script.google.com/macros/s/AKfycbx9dTxpGo4NAsZ6iR6SxuY-fYk7vMMx5sDgs-g7yQd8BPna6ncFAec912og_a3-hF5Gyw/exec?nip=${nipLogin}`)
-    .then((res) => res.json())
-    .then((data) => {
+    .then(res => res.json())
+    .then(data => {
       if (data.status === "success") {
         document.getElementById("nip").innerText = data.nip;
         document.getElementById("nama").innerText = data.nama;
@@ -51,96 +48,13 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     })
     .finally(() => {
-      // ✅ Sembunyikan spinner setelah semuanya siap
       document.getElementById("loadingOverlay").style.display = "none";
     });
 });
 
-// ✅ Konversi koordinat ke alamat (pakai OpenCage)
-function getLocationName(lat, lon) {
-  const apiKey = "2bbd755924364128b9e1b32f2ca00375";
-  const url = `https://api.opencagedata.com/geocode/v1/json?q=${lat}+${lon}&key=${apiKey}&language=id`;
-
-  fetch(url)
-    .then((res) => res.json())
-    .then((data) => {
-      if (data && data.results && data.results.length > 0) {
-        const lokasi = data.results[0].formatted;
-        document.getElementById("lokasi").innerText = lokasi;
-      } else {
-        document.getElementById("lokasi").innerText = "Alamat tidak ditemukan";
-      }
-    })
-    .catch(() => {
-      document.getElementById("lokasi").innerText = "Gagal mengambil alamat";
-    });
-}
-
-
-
-// Fungsi SCAN QR CODE
-let html5QrCode;
-
-function scanQRCode() {
-  const qrResult = document.getElementById("qrResult");
-  const qrCodeText = document.getElementById("qrCodeText");
-
-  if (!html5QrCode) {
-    html5QrCode = new Html5Qrcode("reader");
-  }
-
-  html5QrCode.start(
-    { facingMode: "environment" }, // Kamera belakang
-    {
-      fps: 10,
-      qrbox: 250
-    },
-    (decodedText) => {
-      qrCodeText.value = decodedText; // ✅ Masukkan ke textarea
-      qrResult.innerHTML = `<strong>✅ QR Terdeteksi:</strong> ${decodedText}`;
-
-      html5QrCode.stop().then(() => {
-        document.getElementById("reader").innerHTML = ""; // Bersihkan scanner
-      });
-    },
-    (errorMessage) => {
-      // console.warn(`QR Error: ${errorMessage}`);
-    }
-  ).catch((err) => {
-    qrResult.innerHTML = `❌ Tidak bisa akses kamera: ${err}`;
-  });
-}
-
-
-
-
-// FUNGSI AMBLI FOTO
-function ambilFoto() {
-  const input = document.createElement("input");
-  input.type = "file";
-  input.accept = "image/*";
-  input.capture = "environment"; // kamera belakang
-
-  input.onchange = function () {
-    const file = input.files[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = function (e) {
-      const base64 = e.target.result;
-      localStorage.setItem("fotoAbsen", base64);
-      document.getElementById("previewFoto").innerHTML =
-        `<img src="${base64}" style="width:100%; border-radius:10px;" />`;
-    };
-    reader.readAsDataURL(file);
-  };
-
-  input.click();
-}
-
-// ALMAT KOORDINAT DETAIL
+// Konversi koordinat ke alamat
 function getAlamatFromKoordinat(lat, lon) {
-  const apiKey = "2bbd755924364128b9e1b32f2ca00375"; // API Key OpenCage
+  const apiKey = "2bbd755924364128b9e1b32f2ca00375";
   const url = `https://api.opencagedata.com/geocode/v1/json?q=${lat}+${lon}&key=${apiKey}&language=id&pretty=1`;
 
   fetch(url)
@@ -159,6 +73,57 @@ function getAlamatFromKoordinat(lat, lon) {
     });
 }
 
+// SCAN QR
+let html5QrCode;
+
+function scanQRCode() {
+  const qrResult = document.getElementById("qrResult");
+
+  if (!html5QrCode) {
+    html5QrCode = new Html5Qrcode("reader");
+  }
+
+  html5QrCode.start(
+    { facingMode: "environment" },
+    { fps: 10, qrbox: 250 },
+    (decodedText) => {
+      localStorage.setItem("qrText", decodedText);
+      qrResult.innerHTML = `<strong>✅ QR Terdeteksi:</strong> ${decodedText}`;
+      html5QrCode.stop().then(() => {
+        document.getElementById("reader").innerHTML = "";
+      });
+    },
+    () => {}
+  ).catch((err) => {
+    qrResult.innerHTML = `❌ Tidak bisa akses kamera: ${err}`;
+  });
+}
+
+// AMBIL FOTO
+function ambilFoto() {
+  const input = document.createElement("input");
+  input.type = "file";
+  input.accept = "image/*";
+  input.capture = "environment";
+
+  input.onchange = function () {
+    const file = input.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function (e) {
+      const base64 = e.target.result;
+      localStorage.setItem("fotoAbsen", base64);
+      document.getElementById("previewFoto").innerHTML =
+        `<img src="${base64}" style="width:100%; border-radius:10px;" />`;
+    };
+    reader.readAsDataURL(file);
+  };
+
+  input.click();
+}
+
+// SUBMIT ABSEN
 document.getElementById("absenForm").addEventListener("submit", async function (e) {
   e.preventDefault();
 
@@ -168,9 +133,9 @@ document.getElementById("absenForm").addEventListener("submit", async function (
   const tanggal = document.getElementById("tanggal").innerText;
   const jam = document.getElementById("jam").innerText;
   const lokasi = document.getElementById("lokasi").innerText;
-  const qr = document.getElementById("qrResult").innerText;
+  const qr = localStorage.getItem("qrText") || "";
   const keterangan = document.getElementById("keterangan").value;
-  const fotoBase64 = localStorage.getItem("fotoUser");
+  const fotoBase64 = localStorage.getItem("fotoAbsen");
 
   if (!qr || !fotoBase64) {
     document.getElementById("status").innerText = "❌ Pastikan QR Code dan Foto sudah diisi!";
@@ -191,15 +156,28 @@ document.getElementById("absenForm").addEventListener("submit", async function (
   document.getElementById("status").innerText = "⏳ Mengirim data...";
 
   try {
-    const res = await fetch("https://script.google.com/macros/s/AKf.../exec", {
+    const res = await fetch("https://script.google.com/macros/s/AKfycbw1VV2WrRLYb0ekBXCMG8_jWbJvxJFhltY0zuro4bzjdD4ez2oWmw-KNgX_B1a6xNYDQg/exec", {
       method: "POST",
       body: formData,
     });
 
     const text = await res.text();
     document.getElementById("status").innerText = text;
-    localStorage.removeItem("fotoUser");
+
+    // Bersihkan data lokal
+    localStorage.removeItem("fotoAbsen");
+    localStorage.removeItem("qrText");
+
     document.getElementById("previewFoto").innerHTML = `<span>✅ Terkirim</span>`;
+    document.getElementById("qrResult").innerHTML = "";
+
+    // Redirect jika berhasil
+    if (text.includes("berhasil")) {
+      setTimeout(() => {
+        window.location.href = "index.html";
+      }, 2500);
+    }
+
   } catch (err) {
     document.getElementById("status").innerText = "❌ Gagal mengirim: " + err.message;
   }
