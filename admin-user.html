@@ -7,86 +7,153 @@
   <style>
     body {
       font-family: Arial, sans-serif;
-      background: #f0f4f8;
+      background: #f2f2f2;
+      margin: 0;
       padding: 20px;
     }
-    .container {
-      background: white;
-      max-width: 420px;
-      margin: auto;
-      padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.1);
-    }
-    h1 {
+    .judul {
       text-align: center;
       margin-bottom: 20px;
     }
+    .container {
+      max-width: 400px;
+      margin: auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
     input, button {
       width: 100%;
-      padding: 10px;
       margin-bottom: 12px;
+      padding: 10px;
+      font-size: 16px;
       border-radius: 8px;
       border: 1px solid #ccc;
     }
-    #statusUser {
+    button {
+      background-color: #2196f3;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #1976d2;
+    }
+    .foto-preview {
       text-align: center;
+      margin-bottom: 12px;
+    }
+    .foto-preview img {
+      max-width: 100%;
+      border-radius: 10px;
+      display: none;
+    }
+    #statusUser {
       margin-top: 10px;
       font-weight: bold;
+      color: #d32f2f;
+      text-align: center;
     }
   </style>
 </head>
 <body>
+  <header class="judul">
+    <h1>Tambah Data User Security</h1>
+  </header>
 
   <div class="container">
-    <h1>Tambah Data User Security</h1>
     <form id="formUser">
       <input type="text" id="nip" placeholder="NIP" required>
       <input type="text" id="nama" placeholder="Nama Lengkap" required>
       <input type="text" id="perusahaan" placeholder="Perusahaan" required>
-      <button type="submit">Simpan Data</button>
+
+      <button type="button" onclick="uploadFotoUser()">📸 Upload Foto</button>
+      <div class="foto-preview" id="previewFotoUser">
+        <img id="fotoUserPreview" src="" alt="Preview Foto">
+        <p id="infoPreview">Belum ada foto</p>
+      </div>
+
+      <button type="submit">Simpan User</button>
     </form>
+
     <div id="statusUser"></div>
   </div>
 
   <script>
-    const scriptURL = "https://script.google.com/macros/s/AKfycbyFsuJ2ixjfcGmr1r3B_J9V3HUd28DbP09J18ZdwkLo7NWXsof-ZuYxzymYC_NldYwIeA/exec";
+    const URL_SCRIPT = "https://script.google.com/macros/s/AKfycbxo_sSPR947diVTmBCpMUOtIPAyCZMu24VN9qsecOqm33QakQ2Tg6JwjExovx64UaOwMA/exec"; // ✅ Ganti sesuai URL script-mu
 
-    document.getElementById("formUser").addEventListener("submit", async function(e) {
+    document.getElementById("formUser").addEventListener("submit", async function (e) {
       e.preventDefault();
 
       const nip = document.getElementById("nip").value.trim();
       const nama = document.getElementById("nama").value.trim();
       const perusahaan = document.getElementById("perusahaan").value.trim();
+      const fotoBase64 = localStorage.getItem("fotoUser");
 
-      const formData = new URLSearchParams();
-      formData.append("action", "addUserFromAdmin");  // ✅ WAJIB
-      formData.append("nip", nip);
-      formData.append("nama", nama);
-      formData.append("perusahaan", perusahaan);
+      if (!nip || !nama || !perusahaan) {
+        document.getElementById("statusUser").innerText = "❌ Semua data wajib diisi.";
+        return;
+      }
 
-      document.getElementById("statusUser").innerText = "⏳ Mengirim...";
+      if (!fotoBase64) {
+        document.getElementById("statusUser").innerText = "❌ Upload foto terlebih dahulu.";
+        return;
+      }
+
+      document.getElementById("statusUser").innerText = "⏳ Mengirim data...";
 
       try {
-        const res = await fetch(scriptURL, {
+        const res = await fetch(URL_SCRIPT, {
           method: "POST",
-          headers: {
-            "Content-Type": "application/x-www-form-urlencoded"
-          },
-          body: formData.toString()
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: new URLSearchParams({
+            action: "addUserFromAdmin",  // ✅ sesuai handler di Code.gs
+            nip,
+            nama,
+            perusahaan,
+            foto: fotoBase64
+          }),
         });
 
-        const result = await res.text();
-        document.getElementById("statusUser").innerText = result;
+        const text = await res.text();
+        document.getElementById("statusUser").innerText = text;
 
-        if (result.includes("berhasil")) {
+        if (text.includes("berhasil")) {
           document.getElementById("formUser").reset();
+          localStorage.removeItem("fotoUser");
+          document.getElementById("fotoUserPreview").style.display = "none";
+          document.getElementById("infoPreview").style.display = "block";
         }
-
       } catch (err) {
-        document.getElementById("statusUser").innerText = "❌ Gagal: " + err.message;
+        console.error("❌ Gagal kirim:", err);
+        document.getElementById("statusUser").innerText = "❌ Gagal mengirim data.";
       }
     });
+
+    function uploadFotoUser() {
+      const input = document.createElement("input");
+      input.type = "file";
+      input.accept = "image/*";
+      input.capture = "environment";
+
+      input.onchange = function () {
+        const file = input.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          const base64 = e.target.result;
+          localStorage.setItem("fotoUser", base64);
+          document.getElementById("fotoUserPreview").src = base64;
+          document.getElementById("fotoUserPreview").style.display = "block";
+          document.getElementById("infoPreview").style.display = "none";
+        };
+        reader.readAsDataURL(file);
+      };
+
+      input.click();
+    }
   </script>
 </body>
 </html>

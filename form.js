@@ -1,5 +1,5 @@
 // ✅ GLOBAL: URL ke Apps Script
-const scriptURL = "https://script.google.com/macros/s/AKfycbyFsuJ2ixjfcGmr1r3B_J9V3HUd28DbP09J18ZdwkLo7NWXsof-ZuYxzymYC_NldYwIeA/exec";
+const scriptURL = "https://script.google.com/macros/s/AKfycbxo_sSPR947diVTmBCpMUOtIPAyCZMu24VN9qsecOqm33QakQ2Tg6JwjExovx64UaOwMA/exec";
 
 document.addEventListener("DOMContentLoaded", function () {
   // 🧼 Bersihkan sisa data QR & Foto saat buka form
