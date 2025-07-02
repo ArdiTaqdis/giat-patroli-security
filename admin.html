@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Admin Panel - Absensi</title>
+
+  <!-- DataTables -->
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background: #f0f2f5;
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .filter-box {
+      text-align: center;
+      margin-bottom: 15px;
+    }
+    .filter-box input {
+      padding: 8px;
+      font-size: 14px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      margin: 0 5px;
+    }
+    table {
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <h2>Data Absensi Security</h2>
+
+  <div class="filter-box">
+    <label>Dari Jam: <input type="time" id="filterJamAwal"></label>
+    <label>Sampai Jam: <input type="time" id="filterJamAkhir"></label>
+    <button onclick="filterJam()">🔍 Filter</button>
+    <button onclick="resetFilter()">🔁 Reset</button>
+  </div>
+
+  <table id="dataTabel" class="display" style="width:100%">
+    <thead>
+      <tr>
+        <th>Tanggal</th>
+        <th>NIP</th>
+        <th>Nama</th>
+        <th>Perusahaan</th>
+        <th>Jam</th>
+        <th>Lokasi</th>
+        <th>Keterangan</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <script>
+    const scriptURL = "https://script.google.com/macros/s/AKfycbzTbkZUFbV0coqNgh_5qqH7xIOtck_gvNODyJUZPfERPmKth6TmFixFPyuiruXP2B_1SA/exec"; // ✅ ganti sesuai milikmu
+
+    let table;
+
+    document.addEventListener("DOMContentLoaded", async () => {
+      const res = await fetch(scriptURL + "?action=getAbsensi");
+      const data = await res.json();
+
+      table = $('#dataTabel').DataTable({
+        data: data,
+        columns: [
+          { data: 'tanggal' },
+          { data: 'nip' },
+          { data: 'nama' },
+          { data: 'perusahaan' },
+          { data: 'jam' },
+          { data: 'lokasi' },
+          { data: 'keterangan' }
+        ]
+      });
+    });
+
+    function filterJam() {
+      const dari = document.getElementById("filterJamAwal").value;
+      const sampai = document.getElementById("filterJamAkhir").value;
+      if (!dari && !sampai) return;
+
+      const jamAwal = dari ? parseInt(dari.replace(":", "")) : 0;
+      const jamAkhir = sampai ? parseInt(sampai.replace(":", "")) : 2359;
+
+      table.rows().every(function () {
+        const jamData = this.data().jam || "";
+        const jamAngka = parseInt(jamData.replace(":", ""));
+        const visible = jamAngka >= jamAwal && jamAngka <= jamAkhir;
+        this.node().style.display = visible ? '' : 'none';
+      });
+    }
+
+    function resetFilter() {
+      document.getElementById("filterJamAwal").value = "";
+      document.getElementById("filterJamAkhir").value = "";
+      table.rows().every(function () {
+        this.node().style.display = '';
+      });
+    }
+  </script>
+</body>
+</html>
