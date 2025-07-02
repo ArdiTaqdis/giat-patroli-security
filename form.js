@@ -1,5 +1,5 @@
 // ✅ GLOBAL: URL ke Apps Script
-const scriptURL = "https://script.google.com/macros/s/AKfycbzTbkZUFbV0coqNgh_5qqH7xIOtck_gvNODyJUZPfERPmKth6TmFixFPyuiruXP2B_1SA/exec";
+const scriptURL = "https://script.google.com/macros/s/AKfycbxTIaIq8NmwDFzrcyZlo3TEPF6ODmEpqMHZAIrPOVwfRb0zcHc1wLB4YqmSPn9BIGko/exec";
 
 document.addEventListener("DOMContentLoaded", function () {
   const nipLogin = localStorage.getItem("nipLogin");
@@ -147,35 +147,42 @@ if (form) {
       return;
     }
 
-    const formData = new FormData();
-    formData.append("action", "absen");
-    formData.append("nip", nip);
-    formData.append("nama", nama);
-    formData.append("perusahaan", perusahaan);
-    formData.append("tanggal", tanggal);
-    formData.append("jam", jam);
-    formData.append("lokasi", lokasi);
-    formData.append("qr", qr);
-    formData.append("keterangan", keterangan);
-    formData.append("foto", fotoBase64);
+    const formBody = new URLSearchParams();
+formBody.append("action", "absen");
+formBody.append("nip", nip);
+formBody.append("nama", nama);
+formBody.append("perusahaan", perusahaan);
+formBody.append("tanggal", tanggal);
+formBody.append("jam", jam);
+formBody.append("lokasi", lokasi);
+formBody.append("qr", qr);
+formBody.append("keterangan", keterangan);
+formBody.append("foto", fotoBase64);
 
-    document.getElementById("status").innerText = "⏳ Mengirim data...";
+document.getElementById("status").innerText = "⏳ Mengirim data...";
 
-    try {
-      const res = await fetch(scriptURL, { method: "POST", body: formData });
-      const text = await res.text();
-
-      document.getElementById("status").innerText = text;
-      localStorage.removeItem("fotoAbsen");
-      localStorage.removeItem("qrText");
-      document.getElementById("previewFoto").innerHTML = `<span>✅ Terkirim</span>`;
-      document.getElementById("qrResult").innerHTML = "";
-
-      if (text.includes("berhasil")) {
-        setTimeout(() => window.location.href = "index.html", 2500);
-      }
-    } catch (err) {
-      document.getElementById("status").innerText = "❌ Gagal mengirim: " + err.message;
-    }
+try {
+  const res = await fetch(scriptURL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded"
+    },
+    body: formBody.toString()
   });
+
+  const text = await res.text();
+  document.getElementById("status").innerText = text;
+  localStorage.removeItem("fotoAbsen");
+  localStorage.removeItem("qrText");
+  document.getElementById("previewFoto").innerHTML = `<span>✅ Terkirim</span>`;
+  document.getElementById("qrResult").innerHTML = "";
+
+  if (text.includes("berhasil")) {
+    setTimeout(() => window.location.href = "index.html", 2500);
+  }
+} catch (err) {
+  document.getElementById("status").innerText = "❌ Gagal mengirim: " + err.message;
+}
+});
+  
 }
