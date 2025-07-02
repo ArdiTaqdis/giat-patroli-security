@@ -148,6 +148,7 @@ if (form) {
     }
 
     const formData = new FormData();
+    formData.append("action", "absen");
     formData.append("nip", nip);
     formData.append("nama", nama);
     formData.append("perusahaan", perusahaan);
