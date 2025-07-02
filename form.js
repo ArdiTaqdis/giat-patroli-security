@@ -6,10 +6,10 @@ document.addEventListener("DOMContentLoaded", function () {
     return;
   }
 
-  // Tampilkan loading overlay
+  // Tampilkan spinner loading
   document.getElementById("loadingOverlay").style.display = "flex";
 
-  // Tanggal & Jam
+  // Set Tanggal dan Jam
   const now = new Date();
   document.getElementById("tanggal").innerText = now.toLocaleDateString("id-ID");
   updateJam();
@@ -19,7 +19,7 @@ document.addEventListener("DOMContentLoaded", function () {
     document.getElementById("jam").innerText = new Date().toLocaleTimeString("id-ID");
   }
 
-  // Lokasi & OpenCage
+  // Lokasi & Alamat (OpenCage)
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(
       (pos) => {
@@ -33,7 +33,7 @@ document.addEventListener("DOMContentLoaded", function () {
     document.getElementById("lokasi").innerText = "Tidak didukung";
   }
 
-  // Data user
+  // Ambil data user dari Apps Script
   fetch(`https://script.google.com/macros/s/AKfycbx9dTxpGo4NAsZ6iR6SxuY-fYk7vMMx5sDgs-g7yQd8BPna6ncFAec912og_a3-hF5Gyw/exec?nip=${nipLogin}`)
     .then(res => res.json())
     .then(data => {
@@ -50,9 +50,15 @@ document.addEventListener("DOMContentLoaded", function () {
     .finally(() => {
       document.getElementById("loadingOverlay").style.display = "none";
     });
+
+  // Restore QR dan Foto jika sebelumnya sudah ada
+  const foto = localStorage.getItem("fotoAbsen");
+  const qr = localStorage.getItem("qrText");
+  if (foto) document.getElementById("previewFoto").innerHTML = `<img src="${foto}" style="width:100%; border-radius:10px;" />`;
+  if (qr) document.getElementById("qrResult").innerHTML = `<strong>✅ QR Terdeteksi:</strong> ${qr}`;
 });
 
-// Konversi koordinat ke alamat
+// ✅ Fungsi: Konversi Koordinat ke Alamat
 function getAlamatFromKoordinat(lat, lon) {
   const apiKey = "2bbd755924364128b9e1b32f2ca00375";
   const url = `https://api.opencagedata.com/geocode/v1/json?q=${lat}+${lon}&key=${apiKey}&language=id&pretty=1`;
@@ -73,9 +79,8 @@ function getAlamatFromKoordinat(lat, lon) {
     });
 }
 
-// SCAN QR
+// ✅ Fungsi: Scan QR Code
 let html5QrCode;
-
 function scanQRCode() {
   const qrResult = document.getElementById("qrResult");
 
@@ -99,7 +104,7 @@ function scanQRCode() {
   });
 }
 
-// AMBIL FOTO
+// ✅ Fungsi: Ambil Foto
 function ambilFoto() {
   const input = document.createElement("input");
   input.type = "file";
@@ -123,7 +128,7 @@ function ambilFoto() {
   input.click();
 }
 
-// SUBMIT ABSEN
+// ✅ Fungsi: Submit Absensi
 document.getElementById("absenForm").addEventListener("submit", async function (e) {
   e.preventDefault();
 
@@ -143,6 +148,7 @@ document.getElementById("absenForm").addEventListener("submit", async function (
   }
 
   const formData = new FormData();
+  formData.append("action", "absen");
   formData.append("nip", nip);
   formData.append("nama", nama);
   formData.append("perusahaan", perusahaan);
@@ -171,7 +177,6 @@ document.getElementById("absenForm").addEventListener("submit", async function (
     document.getElementById("previewFoto").innerHTML = `<span>✅ Terkirim</span>`;
     document.getElementById("qrResult").innerHTML = "";
 
-    // Redirect jika berhasil
     if (text.includes("berhasil")) {
       setTimeout(() => {
         window.location.href = "index.html";
