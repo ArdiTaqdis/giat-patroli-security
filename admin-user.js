@@ -1,4 +1,4 @@
-const URL_SCRIPT = "https://script.google.com/macros/s/AKfycbw28RQGidShXhsAQ4xrdqK5FEqoY1KyokIRVKofSmmM5WkeZNm-_awBYm965c3YlhiXRg/exec";
+const URL_SCRIPT = "https://script.google.com/macros/s/AKfycbzTbkZUFbV0coqNgh_5qqH7xIOtck_gvNODyJUZPfERPmKth6TmFixFPyuiruXP2B_1SA/exec";
 
 document.getElementById("formUser").addEventListener("submit", async function (e) {
   e.preventDefault();
@@ -18,6 +18,7 @@ document.getElementById("formUser").addEventListener("submit", async function (e
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: new URLSearchParams({
+        action: "registerUser", // ✅ tambahkan ini agar dikenali di Code.gs
         nip,
         nama,
         perusahaan,
@@ -35,21 +36,3 @@ document.getElementById("formUser").addEventListener("submit", async function (e
     document.getElementById("statusUser").innerText = "❌ Gagal mengirim data.";
   }
 });
-
-function uploadFotoUser() {
-  const input = document.createElement("input");
-  input.type = "file";
-  input.accept = "image/*";
-  input.capture = "environment"; // kamera belakang (untuk mobile)
-
-  input.onchange = function () {
-    const file = input.files[0];
-    if (!file) return;
-
-    if (!validateSizeBeforeCompress(file, 6)) return;
-
-    compressAndSaveImage(file, "previewFotoUser", "fotoUser");
-  };
-
-  input.click();
-}

@@ -4,7 +4,58 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin - Input User</title>
-  <link rel="stylesheet" href="style.css">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f2f2f2;
+      margin: 0;
+      padding: 20px;
+    }
+    .judul {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .container {
+      max-width: 400px;
+      margin: auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    input, button {
+      width: 100%;
+      margin-bottom: 12px;
+      padding: 10px;
+      font-size: 16px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+    button {
+      background-color: #2196f3;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #1976d2;
+    }
+    .foto-preview {
+      text-align: center;
+      margin-bottom: 12px;
+    }
+    .foto-preview img {
+      max-width: 100%;
+      border-radius: 10px;
+      display: none;
+    }
+    #statusUser {
+      margin-top: 10px;
+      font-weight: bold;
+      color: #d32f2f;
+      text-align: center;
+    }
+  </style>
 </head>
 <body>
   <header class="judul">
@@ -18,7 +69,10 @@
       <input type="text" id="perusahaan" placeholder="Perusahaan" required>
 
       <button type="button" onclick="uploadFotoUser()">📸 Upload Foto</button>
-      <div class="foto-preview" id="previewFotoUser">Belum ada foto</div>
+      <div class="foto-preview" id="previewFotoUser">
+        <img id="fotoUserPreview" src="" alt="Preview Foto">
+        <p id="infoPreview">Belum ada foto</p>
+      </div>
 
       <button type="submit">Simpan User</button>
     </form>
@@ -26,8 +80,74 @@
     <div id="statusUser"></div>
   </div>
 
-  <script src="utils.js"></script>
-  <script src="admin-user.js"></script>
+  <script>
+    const URL_SCRIPT = "https://script.google.com/macros/s/AKfycbzTbkZUFbV0coqNgh_5qqH7xIOtck_gvNODyJUZPfERPmKth6TmFixFPyuiruXP2B_1SA/exec";
+
+    document.getElementById("formUser").addEventListener("submit", async function (e) {
+      e.preventDefault();
+
+      const nip = document.getElementById("nip").value.trim();
+      const nama = document.getElementById("nama").value.trim();
+      const perusahaan = document.getElementById("perusahaan").value.trim();
+      const fotoBase64 = localStorage.getItem("fotoUser");
+
+      if (!fotoBase64) {
+        document.getElementById("statusUser").innerText = "❌ Upload foto terlebih dahulu.";
+        return;
+      }
+
+      document.getElementById("statusUser").innerText = "⏳ Mengirim data...";
+
+      try {
+        const res = await fetch(URL_SCRIPT, {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: new URLSearchParams({
+            action: "registerUser",
+            nip,
+            nama,
+            perusahaan,
+            foto: fotoBase64
+          }),
+        });
+
+        const text = await res.text();
+        document.getElementById("statusUser").innerText = text;
+
+        // Reset
+        document.getElementById("formUser").reset();
+        localStorage.removeItem("fotoUser");
+        document.getElementById("fotoUserPreview").style.display = "none";
+        document.getElementById("infoPreview").style.display = "block";
+      } catch (err) {
+        console.error("❌ Gagal kirim:", err);
+        document.getElementById("statusUser").innerText = "❌ Gagal mengirim data.";
+      }
+    });
+
+    function uploadFotoUser() {
+      const input = document.createElement("input");
+      input.type = "file";
+      input.accept = "image/*";
+      input.capture = "environment";
+
+      input.onchange = function () {
+        const file = input.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          const base64 = e.target.result;
+          localStorage.setItem("fotoUser", base64);
+          document.getElementById("fotoUserPreview").src = base64;
+          document.getElementById("fotoUserPreview").style.display = "block";
+          document.getElementById("infoPreview").style.display = "none";
+        };
+        reader.readAsDataURL(file);
+      };
+
+      input.click();
+    }
+  </script>
 </body>
 </html>
-

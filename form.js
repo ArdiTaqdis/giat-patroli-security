@@ -1,5 +1,5 @@
 // ✅ GLOBAL: URL ke Apps Script
-const scriptURL = "https://script.google.com/macros/s/AKfycbypvjGHVu6_XYxgc8vhZl4AVpzyChQ0b2yt_rvDd_CzqQW-Z2lAz5lTTjQnVXJH8V1QlQ/exec";
+const scriptURL = "https://script.google.com/macros/s/AKfycbzTbkZUFbV0coqNgh_5qqH7xIOtck_gvNODyJUZPfERPmKth6TmFixFPyuiruXP2B_1SA/exec";
 
 document.addEventListener("DOMContentLoaded", function () {
   const nipLogin = localStorage.getItem("nipLogin");
