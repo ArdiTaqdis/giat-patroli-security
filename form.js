@@ -140,28 +140,29 @@ function scanQRCode() {
 }
 
 function nextArea() {
-  const ket = document.getElementById("keterangan").value;
-  saveCurrentAreaData({ ket }, areaNow);
+  const areaSaatIni = areaNow;
 
-  const areaData = JSON.parse(localStorage.getItem(`area${areaNow}`) || "{}");
+  const ket = document.getElementById("keterangan").value;
+  saveCurrentAreaData({ ket }, areaSaatIni);
+
+  const areaData = JSON.parse(localStorage.getItem(`area${areaSaatIni}`) || "{}");
   if (!areaData.qr || !areaData.foto) {
-    alert(`Mohon isi QR dan Foto untuk Area ${areaNow} terlebih dahulu.`);
+    alert(`Mohon isi QR dan Foto untuk Area ${areaSaatIni} terlebih dahulu.`);
     return;
   }
 
-  // ✅ Tampilkan loading area sebelum lanjut
   document.getElementById("loadingAreaOverlay").style.display = "flex";
 
   setTimeout(() => {
     document.getElementById("loadingAreaOverlay").style.display = "none";
 
-    if (areaNow < maxArea) {
-      areaNow++;
+    if (areaSaatIni < maxArea) {
+      areaNow = areaSaatIni + 1;
       updateAreaUI();
     } else {
       kirimSemuaData();
     }
-  }, 1000); // ⏳ delay 1 detik simulasi simpan
+  }, 1000);
 }
 
 function prevArea() {
