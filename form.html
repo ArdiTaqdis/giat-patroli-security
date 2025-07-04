@@ -59,16 +59,10 @@
     <div id="status" style="margin-top: 20px;"></div>
   </div>
 
-  <!-- Spinner loading saat kirim data -->
+  <!-- Loading Spinner -->
   <div id="loadingOverlay">
     <div class="spinner"></div>
-    <div style="margin-top: 10px;">⏳ Mengirim data...</div>
-  </div>
-
-  <!-- Spinner loading saat pindah area -->
-  <div id="loadingAreaOverlay">
-    <div class="spinner"></div>
-    <div style="margin-top:10px;">⏳ Menyimpan dan menyiapkan Area berikutnya...</div>
+    <div style="margin-top: 10px;">⏳ Loading data...</div>
   </div>
 
   <script src="form.js"></script>
@@ -94,32 +88,18 @@
       border-radius: 8px; cursor: pointer;
     }
     button:hover { background-color: #1565c0; }
-
-    #loadingOverlay,
-    #loadingAreaOverlay {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100vw; height: 100vh;
-      background-color: rgba(255,255,255,0.8);
-      z-index: 9999;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      flex-direction: column;
+    #loadingOverlay {
+      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+      background-color: rgba(255,255,255,0.8); z-index: 9999;
+      display: none; align-items: center; justify-content: center; flex-direction: column;
     }
-
     .spinner {
-      width: 50px;
-      height: 50px;
-      border: 5px solid #ccc;
-      border-top: 5px solid #2196f3;
-      border-radius: 50%;
+      width: 50px; height: 50px; border: 5px solid #ccc;
+      border-top: 5px solid #2196f3; border-radius: 50%;
       animation: spin 1s linear infinite;
     }
-
     @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
+      0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); }
     }
   </style>
 </body>
