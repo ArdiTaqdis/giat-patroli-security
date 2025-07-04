@@ -1,0 +1,136 @@
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Form Patroli - Modal Scanner</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://unpkg.com/html5-qrcode"></script>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter&display=swap">
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #e3f2fd;
+      padding: 10px;
+      margin: 0;
+    }
+    .card {
+      background: white;
+      max-width: 600px;
+      margin: auto;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+    .section {
+      margin-bottom: 15px;
+    }
+    button {
+      padding: 10px 16px;
+      margin-top: 5px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      background-color: #1976d2;
+      color: white;
+      font-weight: bold;
+    }
+    button:disabled {
+      background-color: #ccc;
+    }
+    img.profile {
+      width: 60px;
+      height: 60px;
+      object-fit: cover;
+      border-radius: 50%;
+    }
+    textarea {
+      width: 100%;
+      border-radius: 8px;
+      padding: 8px;
+    }
+    .overlay, .area-loading {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5);
+      justify-content: center;
+      align-items: center;
+      color: white;
+      font-size: 20px;
+      z-index: 9999;
+    }
+
+    #modalScanner {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.8);
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+    }
+
+    #modalContent {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      max-width: 400px;
+      width: 90%;
+    }
+
+    #reader {
+      width: 100%;
+    }
+  </style>
+</head>
+<body>
+  <div class="overlay" id="loadingOverlay">⏳ Mengirim data...</div>
+  <div class="overlay area-loading" id="loadingAreaOverlay">⏳ Ganti area...</div>
+
+  <!-- Modal Scanner -->
+  <div id="modalScanner">
+    <div id="modalContent">
+      <div id="reader"></div>
+      <button onclick="closeScanner()">❌ Tutup</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="section">
+      <img id="fotoUser" class="profile" src="" alt="foto">
+      <div><strong>NIP:</strong> <span id="nip"></span></div>
+      <div><strong>Nama:</strong> <span id="nama"></span></div>
+      <div><strong>Perusahaan:</strong> <span id="perusahaan"></span></div>
+      <div><strong>Tanggal:</strong> <span id="tanggal"></span></div>
+      <div><strong>Jam:</strong> <span id="jam"></span></div>
+      <div><strong>Lokasi:</strong> <span id="lokasi"></span></div>
+    </div>
+
+    <hr>
+
+    <div class="section">
+      <h3 id="areaTitle">Area 1</h3>
+      <div><strong>QR Result:</strong> <div id="qrResult"></div></div>
+      <button onclick="openScanner()">📷 Scan QR</button>
+      <br><br>
+      <div id="previewFoto"><span>📸 Foto akan tampil di sini</span></div>
+      <button onclick="ambilFoto()">📸 Ambil Foto</button>
+      <br><br>
+      <textarea id="keterangan" rows="3" placeholder="Keterangan tambahan..."></textarea>
+    </div>
+
+    <div class="section">
+      <button onclick="prevArea()">⬅️ Area Sebelumnya</button>
+      <button id="nextBtn" onclick="nextArea()">➡️ Area Berikutnya</button>
+    </div>
+
+    <div class="section" id="status" style="text-align:center;"></div>
+  </div>
+
+  <script src="form.js"></script>
+</body>
+</html>
