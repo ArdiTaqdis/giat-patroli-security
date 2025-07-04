@@ -1,112 +1,359 @@
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
-  <base target="_top">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Admin Panel - Absensi</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Admin Monitoring Patroli</title>
 
-  <!-- DataTables -->
+  <!-- Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+
+  <!-- DataTables & Export -->
   <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+  <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.dataTables.min.css">
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+  <script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
+  <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
+  <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
+
+  <!-- Date Range Picker -->
+  <script src="https://cdn.jsdelivr.net/npm/moment@2.29.4/moment.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
 
   <style>
     body {
-      font-family: Arial, sans-serif;
+      font-family: 'Poppins', sans-serif;
+      background: #f4f7fc;
       padding: 20px;
-      background: #f0f2f5;
     }
+
     h2 {
       text-align: center;
-      margin-bottom: 20px;
+      background-color: #1976d2;
+      color: white;
+      padding: 16px;
+      border-radius: 12px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
     }
-    .filter-box {
-      text-align: center;
-      margin-bottom: 15px;
+
+    .filter-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      align-items: center;
+      margin: 20px 0;
     }
-    .filter-box input {
-      padding: 8px;
-      font-size: 14px;
-      border-radius: 6px;
+
+    .filter-bar label {
+      font-weight: 600;
+    }
+
+    .filter-bar input,
+    .filter-bar select {
+      padding: 8px 12px;
       border: 1px solid #ccc;
-      margin: 0 5px;
+      border-radius: 8px;
     }
-    table {
-      font-size: 14px;
+
+    table.dataTable {
+      width: 100% !important;
+      background: white;
+      border-collapse: collapse;
+    }
+
+    table.dataTable th {
+      background: #1976d2;
+      color: white;
+      text-align: center;
+    }
+
+    table.dataTable tbody tr:hover {
+      background: #e3f2fd;
+    }
+
+    td img {
+      max-width: 60px;
+      border-radius: 4px;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5);
+      justify-content: center;
+      align-items: center;
+      z-index: 999;
+    }
+
+    .modal-content {
+      background: #fff;
+      padding: 24px;
+      border-radius: 12px;
+      width: 100%;
+      max-width: 500px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+    }
+
+    .modal-content label {
+      display: block;
+      margin-bottom: 12px;
+    }
+
+    .modal-content input,
+    .modal-content select {
+      width: 100%;
+      padding: 8px;
+      border-radius: 8px;
+      margin-top: 4px;
+      border: 1px solid #ccc;
+    }
+
+    .modal-footer {
+      text-align: right;
+      margin-top: 15px;
+    }
+
+    .modal-footer button {
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-weight: bold;
+      margin-left: 10px;
+    }
+
+    button.edit {
+      background: #1976d2;
+      color: white;
+    }
+
+    button.hapus {
+      background: #d32f2f;
+      color: white;
+    }
+
+    button.simpan {
+      background: #2e7d32;
+      color: white;
+    }
+
+    button:hover {
+      opacity: 0.9;
+      cursor: pointer;
+    }
+
+    #loadingOverlay {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(255,255,255,0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      font-size: 18px;
     }
   </style>
 </head>
 <body>
-  <h2>Data Absensi Security</h2>
+  <h2>Monitoring Patroli Security (5 Area)</h2>
+  <div id="loadingOverlay">⏳ Memuat data...</div>
 
-  <div class="filter-box">
-    <label>Dari Jam: <input type="time" id="filterJamAwal"></label>
-    <label>Sampai Jam: <input type="time" id="filterJamAkhir"></label>
-    <button onclick="filterJam()">🔍 Filter</button>
-    <button onclick="resetFilter()">🔁 Reset</button>
+  <div class="filter-bar">
+    <label>Timestamp:</label>
+    <input type="text" id="filterTimestamp" placeholder="Pilih rentang tanggal & jam">
+
+    <label>Perusahaan:</label>
+    <select id="filterPerusahaan">
+      <option value="">Semua</option>
+    </select>
+
+    <label>Status:</label>
+    <select id="filterStatus">
+      <option value="">Semua</option>
+      <option value="Proses">Proses</option>
+      <option value="Done">Done</option>
+      <option value="Expired">Expired</option>
+    </select>
   </div>
 
-  <table id="dataTabel" class="display" style="width:100%">
+  <table id="dataTabel" class="display nowrap">
     <thead>
       <tr>
-        <th>Tanggal</th>
+        <th>Timestamp</th>
         <th>NIP</th>
         <th>Nama</th>
         <th>Perusahaan</th>
+        <th>Tanggal</th>
         <th>Jam</th>
         <th>Lokasi</th>
-        <th>Keterangan</th>
+        <th>QR1</th><th>Foto1</th><th>Ket1</th>
+        <th>QR2</th><th>Foto2</th><th>Ket2</th>
+        <th>QR3</th><th>Foto3</th><th>Ket3</th>
+        <th>QR4</th><th>Foto4</th><th>Ket4</th>
+        <th>QR5</th><th>Foto5</th><th>Ket5</th>
+        <th>Status</th>
+        <th>Aksi</th>
       </tr>
     </thead>
     <tbody></tbody>
   </table>
 
-  <script>
-    const scriptURL = "https://script.google.com/macros/s/AKfycbzTbkZUFbV0coqNgh_5qqH7xIOtck_gvNODyJUZPfERPmKth6TmFixFPyuiruXP2B_1SA/exec"; // ✅ ganti sesuai milikmu
+  <!-- Modal -->
+  <div id="editModal" class="modal">
+    <div class="modal-content">
+      <h3>Edit Keterangan & Status</h3>
+      <label>NIP:
+        <input type="text" id="editNip" readonly>
+      </label>
+      <label>Nama:
+        <input type="text" id="editNama" readonly>
+      </label>
+      <label>Keterangan 1:
+        <input type="text" id="editKet1">
+      </label>
+      <label>Status:
+        <select id="editStatus">
+          <option value="">-- Pilih --</option>
+          <option value="Proses">Proses</option>
+          <option value="Done">Done</option>
+          <option value="Expired">Expired</option>
+        </select>
+      </label>
+      <div class="modal-footer">
+        <button onclick="tutupModal()">❌ Batal</button>
+        <button class="simpan" onclick="simpanEdit()">💾 Simpan</button>
+      </div>
+    </div>
+  </div>
 
-    let table;
+  <script>
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbyMo-HUC8VoDEflt6eBTKGrVUMnrbvbjNRLXru9Ddd5Yzko1E07ZXM9_TD3dZzO0wUK8Q/exec';
+    let table, allData = [];
 
     document.addEventListener("DOMContentLoaded", async () => {
-      const res = await fetch(scriptURL + "?action=getAbsensi");
-      const data = await res.json();
+      moment.locale('id');
+      const res = await fetch(scriptURL + '?action=getPatroli');
+      allData = await res.json();
+      document.getElementById("loadingOverlay").style.display = "none";
 
       table = $('#dataTabel').DataTable({
-        data: data,
+        data: allData,
         columns: [
-          { data: 'tanggal' },
-          { data: 'nip' },
-          { data: 'nama' },
-          { data: 'perusahaan' },
-          { data: 'jam' },
-          { data: 'lokasi' },
-          { data: 'keterangan' }
-        ]
+          { data: 'Timestamp', render: d => new Date(d).toLocaleString('id-ID') },
+          { data: 'NIP' }, { data: 'Nama' }, { data: 'Perusahaan' },
+          { data: 'Tanggal', render: d => moment(d).format('DD/MM/YYYY')}, { data: 'Jam' }, { data: 'Lokasi' },
+          { data: 'QR1' }, { data: 'Foto1', render: d => d ? `<img src="${d}">` : '-' }, { data: 'Ket1' },
+          { data: 'QR2' }, { data: 'Foto2', render: d => d ? `<img src="${d}">` : '-' }, { data: 'Ket2' },
+          { data: 'QR3' }, { data: 'Foto3', render: d => d ? `<img src="${d}">` : '-' }, { data: 'Ket3' },
+          { data: 'QR4' }, { data: 'Foto4', render: d => d ? `<img src="${d}">` : '-' }, { data: 'Ket4' },
+          { data: 'QR5' }, { data: 'Foto5', render: d => d ? `<img src="${d}">` : '-' }, { data: 'Ket5' },
+          { data: 'Status' },
+          {
+            data: null,
+            render: (d, t, row, meta) => `
+              <button class="edit" onclick="openEditModal(${meta.row})">✏️ Edit</button>
+              <button class="hapus" onclick="hapusData(${meta.row})">🗑️ Hapus</button>`
+          }
+        ],
+        dom: 'Bfrtip',
+        buttons: ['excelHtml5', 'pdfHtml5', 'print'],
+        scrollX: true
+      });
+
+      // Filter: Timestamp
+      $('#filterTimestamp').daterangepicker({
+        timePicker: true,
+        timePicker24Hour: true,
+        locale: { format: 'DD/MM/YYYY HH:mm' },
+        autoUpdateInput: false
+      });
+
+      $('#filterTimestamp').on('apply.daterangepicker', function(ev, picker) {
+        const start = picker.startDate;
+        const end = picker.endDate;
+        $(this).val(start.format('DD/MM/YYYY HH:mm') + ' - ' + end.format('DD/MM/YYYY HH:mm'));
+        $.fn.dataTable.ext.search.push(function(settings, data) {
+          const ts = data[0];
+          const tsDate = moment(ts, 'D/M/YYYY, H:mm:ss');
+          return tsDate.isBetween(start, end, null, '[]');
+        });
+        table.draw();
+      });
+
+      $('#filterTimestamp').on('cancel.daterangepicker', function() {
+        $(this).val('');
+        $.fn.dataTable.ext.search.pop();
+        table.draw();
+      });
+
+      // Filter: Perusahaan
+      const perusahaanSet = new Set(allData.map(d => d.Perusahaan));
+      perusahaanSet.forEach(p => {
+        $('#filterPerusahaan').append(`<option value="${p}">${p}</option>`);
+      });
+
+      $('#filterPerusahaan, #filterStatus').on('change', () => table.draw());
+
+      $.fn.dataTable.ext.search.push(function(settings, data) {
+        const perusahaan = $('#filterPerusahaan').val();
+        const status = $('#filterStatus').val();
+        const perusahaanData = data[3];
+        const statusData = data[21];
+        const matchPerusahaan = !perusahaan || perusahaanData === perusahaan;
+        const matchStatus = !status || statusData === status;
+        return matchPerusahaan && matchStatus;
       });
     });
 
-    function filterJam() {
-      const dari = document.getElementById("filterJamAwal").value;
-      const sampai = document.getElementById("filterJamAkhir").value;
-      if (!dari && !sampai) return;
-
-      const jamAwal = dari ? parseInt(dari.replace(":", "")) : 0;
-      const jamAkhir = sampai ? parseInt(sampai.replace(":", "")) : 2359;
-
-      table.rows().every(function () {
-        const jamData = this.data().jam || "";
-        const jamAngka = parseInt(jamData.replace(":", ""));
-        const visible = jamAngka >= jamAwal && jamAngka <= jamAkhir;
-        this.node().style.display = visible ? '' : 'none';
-      });
+    function openEditModal(index) {
+      const d = allData[index];
+      document.getElementById('editNip').value = d.NIP;
+      document.getElementById('editNama').value = d.Nama;
+      document.getElementById('editKet1').value = d.Ket1 || '';
+      document.getElementById('editStatus').value = d.Status || '';
+      document.getElementById('editModal').style.display = "flex";
+      document.getElementById('editModal').dataset.index = index;
     }
 
-    function resetFilter() {
-      document.getElementById("filterJamAwal").value = "";
-      document.getElementById("filterJamAkhir").value = "";
-      table.rows().every(function () {
-        this.node().style.display = '';
-      });
+    function tutupModal() {
+      document.getElementById('editModal').style.display = "none";
+    }
+
+    async function simpanEdit() {
+      const index = document.getElementById('editModal').dataset.index;
+      const row = allData[index];
+      const ketBaru = document.getElementById('editKet1').value;
+      const statusBaru = document.getElementById('editStatus').value;
+      const payload = new URLSearchParams();
+      payload.append('action', 'updateKeterangan1');
+      payload.append('timestamp', row.Timestamp);
+      payload.append('keterangan', ketBaru);
+      payload.append('status', statusBaru);
+
+      const res = await fetch(scriptURL, { method: 'POST', body: payload });
+      alert(await res.text());
+      location.reload();
+    }
+
+    function hapusData(index) {
+      if (!confirm("Yakin ingin menghapus data ini?")) return;
+      const row = allData[index];
+      const payload = new URLSearchParams();
+      payload.append('action', 'deleteAbsen');
+      payload.append('timestamp', row.Timestamp);
+
+      fetch(scriptURL, {
+        method: "POST",
+        body: payload
+      }).then(res => res.text()).then(alert).then(() => location.reload());
     }
   </script>
 </body>
 </html>
+

@@ -3,91 +3,104 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Giat Patroli Security</title>
-  <link rel="manifest" href="manifest.json" />
+  <title>Patroli 5 Area</title>
   <link rel="stylesheet" href="style.css" />
+  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
 </head>
-
 <body>
-  <!-- HEADER -->
   <header class="judul">
-    <div class="avatar-foto">
-      <img src="https://cdn-icons-png.flaticon.com/512/149/149071.png" alt="User" />
-    </div>
-    <h1>Giat Patroli Security</h1>
+    <h1>Absensi Patroli 5 Area</h1>
   </header>
 
   <div class="container">
+    <!-- Foto Profil -->
+    <div style="text-align: center;">
+      <img id="fotoUser" src="https://cdn-icons-png.flaticon.com/512/149/149071.png" alt="User" style="width: 80px; border-radius: 50%;" />
+    </div>
 
-    <!-- IDENTITAS -->
+    <!-- Info Petugas -->
     <div class="identitas">
       <div><strong>NIP:</strong> <span id="nip">-</span></div>
-      <div class="besar"><strong>Nama:</strong> <span id="nama">-</span></div>
-      <div class="besar"><strong>Perusahaan:</strong> <span id="perusahaan">-</span></div>
+      <div><strong>Nama:</strong> <span id="nama">-</span></div>
+      <div><strong>Perusahaan:</strong> <span id="perusahaan">-</span></div>
     </div>
 
-    <!-- WAKTU & LOKASI -->
-    <div class="info-waktu">
+    <!-- Waktu dan Lokasi -->
+    <div class="info-waktu" style="margin-top: 10px;">
       <div><strong>Tanggal:</strong> <span id="tanggal">-</span></div>
       <div><strong>Jam:</strong> <span id="jam">-</span></div>
-      <div><strong>Lokasi:</strong> <span id="lokasi">-</span></div>
+      <div><strong>Lokasi:</strong> <span id="lokasi">📍 Mengambil lokasi...</span></div>
     </div>
 
-    <!-- FORM -->
-    <form id="absenForm">
+    <!-- Step Area -->
+    <div id="progressInfo" style="text-align: center; font-weight: bold; margin-bottom: 10px;">
+      Area <span id="areaNow">1</span> dari 5
+    </div>
+
+    <div id="stepContainer">
+      <h2 id="areaTitle">Area 1</h2>
       <button type="button" onclick="scanQRCode()">🔍 Scan QR Code</button>
       <div id="qrResult"></div>
-      <div id="reader" style="width: 300px; margin-top: 15px;"></div>
-      <button type="button" onclick="ambilFoto()">📸 Ambil Foto</button>
+      <div id="reader" style="width: 300px; margin-top: 10px;"></div>
 
+      <button type="button" onclick="ambilFoto()">📸 Ambil Foto Area</button>
       <div class="foto-preview" id="previewFoto">
         <span>📸 Foto akan tampil di sini</span>
       </div>
 
-      <textarea id="keterangan" placeholder="Keterangan" rows="3"></textarea>
+      <textarea id="keterangan" placeholder="Keterangan area" rows="3"></textarea>
 
-      <button type="submit">Kirim Absensi</button>
-    </form>
+      <div style="display: flex; gap: 10px; margin-top: 15px;">
+        <button type="button" id="prevBtn" onclick="prevArea()">⬅️ Area Sebelumnya</button>
+        <button type="button" id="nextBtn" onclick="nextArea()">➡️ Area Berikutnya</button>
+      </div>
+    </div>
 
-    <div id="status"></div>
+    <div id="status" style="margin-top: 20px;"></div>
   </div>
 
-  <!-- SCRIPTS -->
-  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
-  <script src="utils.js"></script>
-  <script src="form.js"></script>
-
-  <!-- SPINNER LOADING OVERLAY -->
+  <!-- Loading Spinner -->
   <div id="loadingOverlay">
     <div class="spinner"></div>
-    <div style="margin-top: 10px; font-size: 1.2em; color: #555;">⏳ Loading data...</div>
+    <div style="margin-top: 10px;">⏳ Loading data...</div>
   </div>
 
+  <script src="form.js"></script>
+
   <style>
+    body { font-family: Arial, sans-serif; background: #f0f8ff; margin: 0; padding: 15px; }
+    .judul { text-align: center; margin-bottom: 10px; }
+    .container {
+      max-width: 500px; margin: auto; background: #fff; padding: 20px;
+      border-radius: 12px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    .identitas, .info-waktu {
+      margin-top: 10px; background: #f3faff; padding: 10px; border-radius: 8px;
+    }
+    .foto-preview img { width: 100%; border-radius: 8px; margin-top: 10px; }
+    textarea {
+      width: 100%; padding: 10px; margin-top: 10px;
+      border-radius: 6px; border: 1px solid #ccc; resize: none;
+    }
+    button {
+      display: block; width: 100%; margin-top: 15px; padding: 10px;
+      background-color: #1976d2; color: white; border: none;
+      border-radius: 8px; cursor: pointer;
+    }
+    button:hover { background-color: #1565c0; }
     #loadingOverlay {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100vw; height: 100vh;
-      background-color: rgba(255,255,255,0.85);
-      z-index: 9999;
-      display: none;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
+      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+      background-color: rgba(255,255,255,0.8); z-index: 9999;
+      display: none; align-items: center; justify-content: center; flex-direction: column;
     }
     .spinner {
-      width: 60px;
-      height: 60px;
-      border: 6px solid #ccc;
-      border-top: 6px solid #2196f3;
-      border-radius: 50%;
+      width: 50px; height: 50px; border: 5px solid #ccc;
+      border-top: 5px solid #2196f3; border-radius: 50%;
       animation: spin 1s linear infinite;
     }
     @keyframes spin {
-      0% { transform: rotate(0deg);}
-      100% { transform: rotate(360deg);}
+      0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); }
     }
   </style>
-
 </body>
 </html>
