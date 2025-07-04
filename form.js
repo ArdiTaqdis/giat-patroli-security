@@ -3,6 +3,7 @@ const scriptURL = "https://script.google.com/macros/s/AKfycbyMo-HUC8VoDEflt6eBTK
 let areaNow = 1;
 const maxArea = 5;
 const areaCache = {};
+let html5QrCode;
 
 const beforeUnloadHandler = (e) => {
   e.preventDefault();
@@ -139,7 +140,7 @@ function ambilFoto() {
     const reader = new FileReader();
     reader.onload = (e) => {
       const base64 = e.target.result;
-      document.getElementById("previewFoto").innerHTML = `<img src="\${base64}" style="width:100%; border-radius:10px;" />`;
+      document.getElementById("previewFoto").innerHTML = `<img src="${base64}" style="width:100%; border-radius:10px;" />`;
       saveCurrentAreaData({ foto: base64 }, areaNow);
       setTimeout(() => cekKelengkapanArea(), 300);
     };
@@ -148,13 +149,20 @@ function ambilFoto() {
   input.click();
 }
 
-let html5QrCode;
-function scanQRCode() {
+function openScanner() {
   stopCamera();
+  document.getElementById("modalScanner").style.display = "flex";
+  setTimeout(() => {
+    scanQRCode();
+  }, 300);
+}
 
-  const qrResult = document.getElementById("qrResult");
-  document.getElementById("reader").innerHTML = "";
+function closeScanner() {
+  stopCamera();
+  document.getElementById("modalScanner").style.display = "none";
+}
 
+function scanQRCode() {
   if (!html5QrCode) {
     html5QrCode = new Html5Qrcode("reader");
   }
@@ -163,16 +171,23 @@ function scanQRCode() {
     { facingMode: "environment" },
     { fps: 10, qrbox: 250 },
     (decodedText) => {
-      qrResult.innerHTML = `<strong>✅ QR:</strong> \${decodedText}`;
+      document.getElementById("qrResult").innerHTML = `<strong>✅ QR:</strong> ${decodedText}`;
       saveCurrentAreaData({ qr: decodedText }, areaNow);
+
+      html5QrCode.stop().then(() => {
+        document.getElementById("reader").innerHTML = "";
+        document.getElementById("modalScanner").style.display = "none";
+      }).catch(() => {
+        document.getElementById("modalScanner").style.display = "none";
+      });
+
       setTimeout(() => cekKelengkapanArea(), 300);
-      stopCamera();
     },
     (err) => {
-      console.warn("QR scan error:", err);
+      // silent
     }
   ).catch(err => {
-    qrResult.innerHTML = `❌ Tidak bisa akses kamera: \${err}`;
+    document.getElementById("qrResult").innerHTML = `❌ Tidak bisa akses kamera: ${err}`;
   });
 }
 
@@ -183,7 +198,7 @@ function nextArea() {
 
   const areaData = areaCache[areaSaatIni] || JSON.parse(localStorage.getItem(`area${areaSaatIni}`) || "{}");
   if (!areaData.qr || !areaData.foto) {
-    alert(`Mohon isi QR dan Foto untuk Area \${areaSaatIni} terlebih dahulu.`);
+    alert(`Mohon isi QR dan Foto untuk Area ${areaSaatIni} terlebih dahulu.`);
     return;
   }
 
@@ -200,20 +215,6 @@ function nextArea() {
     }
   }, 1000);
 }
-
-// Fungsi buka scanner modal
-function openScanner() {
-  stopCamera(); // jaga-jaga, pastikan kamera tidak aktif dulu
-  document.getElementById("modalScanner").style.display = "flex";
-  scanQRCode(); // mulai scanner di dalam modal
-}
-
-// Fungsi tutup scanner modal
-function closeScanner() {
-  stopCamera();
-  document.getElementById("modalScanner").style.display = "none";
-}
-
 
 function prevArea() {
   if (areaNow > 1) {
@@ -236,9 +237,9 @@ async function kirimSemuaData() {
 
   for (let i = 1; i <= maxArea; i++) {
     const data = areaCache[i] || JSON.parse(localStorage.getItem(`area${i}`) || "{}");
-    formBody.append(`qr\${i}`, data.qr || "");
-    formBody.append(`foto\${i}`, data.foto || "");
-    formBody.append(`ket\${i}`, data.ket || "");
+    formBody.append(`qr${i}`, data.qr || "");
+    formBody.append(`foto${i}`, data.foto || "");
+    formBody.append(`ket${i}`, data.ket || "");
   }
 
   try {
@@ -254,7 +255,7 @@ async function kirimSemuaData() {
 
     if (text.toLowerCase().includes("berhasil")) {
       alert("✅ Data patroli berhasil dikirim!");
-      for (let i = 1; i <= maxArea; i++) localStorage.removeItem(`area\${i}`);
+      for (let i = 1; i <= maxArea; i++) localStorage.removeItem(`area${i}`);
       window.removeEventListener("beforeunload", beforeUnloadHandler);
       setTimeout(() => (window.location.href = "index.html"), 2500);
     }
