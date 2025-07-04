@@ -149,12 +149,19 @@ function nextArea() {
     return;
   }
 
-  if (areaNow < maxArea) {
-    areaNow++;
-    updateAreaUI();
-  } else {
-    kirimSemuaData();
-  }
+  // ✅ Tampilkan loading area sebelum lanjut
+  document.getElementById("loadingAreaOverlay").style.display = "flex";
+
+  setTimeout(() => {
+    document.getElementById("loadingAreaOverlay").style.display = "none";
+
+    if (areaNow < maxArea) {
+      areaNow++;
+      updateAreaUI();
+    } else {
+      kirimSemuaData();
+    }
+  }, 1000); // ⏳ delay 1 detik simulasi simpan
 }
 
 function prevArea() {
