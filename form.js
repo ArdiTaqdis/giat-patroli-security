@@ -124,18 +124,38 @@ function ambilFoto() {
 let html5QrCode;
 function scanQRCode() {
   const qrResult = document.getElementById("qrResult");
-  if (!html5QrCode) html5QrCode = new Html5Qrcode("reader");
+
+  // Bersihkan reader
+  document.getElementById("reader").innerHTML = "";
+
+  if (!html5QrCode) {
+    html5QrCode = new Html5Qrcode("reader");
+  } else {
+    try {
+      html5QrCode.stop().then(() => {
+        document.getElementById("reader").innerHTML = "";
+      }).catch(() => {});
+    } catch (e) {}
+  }
+
   html5QrCode.start(
     { facingMode: "environment" },
     { fps: 10, qrbox: 250 },
     (decodedText) => {
       qrResult.innerHTML = `<strong>✅ QR:</strong> ${decodedText}`;
-      saveCurrentAreaData({ foto: base64 }, areaNow);
+      saveCurrentAreaData({ qr: decodedText }, areaNow);
       setTimeout(() => cekKelengkapanArea(), 300);
 
-      html5QrCode.stop().then(() => (document.getElementById("reader").innerHTML = ""));
+      html5QrCode.stop().then(() => {
+        document.getElementById("reader").innerHTML = "";
+      }).catch(() => {
+        document.getElementById("reader").innerHTML = "";
+      });
     },
-    () => {}
+    (err) => {
+      // scanning error (tidak perlu ditampilkan)
+      console.warn("QR scan error:", err);
+    }
   ).catch(err => {
     qrResult.innerHTML = `❌ Tidak bisa akses kamera: ${err}`;
   });
