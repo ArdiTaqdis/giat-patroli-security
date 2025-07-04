@@ -1,7 +1,7 @@
 const scriptURL = "https://script.google.com/macros/s/AKfycbyMo-HUC8VoDEflt6eBTKGrVUMnrbvbjNRLXru9Ddd5Yzko1E07ZXM9_TD3dZzO0wUK8Q/exec";
 let areaNow = 1;
 const maxArea = 5;
-const areaCache = {}; // RAM cache agar aman simpan data besar
+const areaCache = {};
 
 const beforeUnloadHandler = (e) => {
   e.preventDefault();
@@ -107,7 +107,26 @@ function saveCurrentAreaData(newData, area = areaNow) {
   }
 }
 
+// ✅ Fungsi Stop Kamera Umum
+function stopCamera() {
+  const videoEl = document.querySelector("video");
+  if (videoEl && videoEl.srcObject) {
+    videoEl.srcObject.getTracks().forEach((track) => track.stop());
+    videoEl.srcObject = null;
+  }
+  if (html5QrCode && html5QrCode._isScanning) {
+    html5QrCode.stop().then(() => {
+      document.getElementById("reader").innerHTML = "";
+    }).catch((err) => {
+      console.warn("Gagal stop kamera QR:", err);
+    });
+  }
+}
+
+// ✅ Ambil Foto
 function ambilFoto() {
+  stopCamera(); // Hentikan kamera sebelum ambil foto
+
   const input = document.createElement("input");
   input.type = "file";
   input.accept = "image/*";
@@ -129,14 +148,12 @@ function ambilFoto() {
 
 let html5QrCode;
 function scanQRCode() {
+  stopCamera(); // Hentikan kamera apapun sebelum mulai scan
+
   const qrResult = document.getElementById("qrResult");
 
   if (!html5QrCode) {
     html5QrCode = new Html5Qrcode("reader");
-  } else {
-    html5QrCode.stop().then(() => {
-      document.getElementById("reader").innerHTML = "";
-    }).catch(() => {});
   }
 
   html5QrCode.start(
@@ -146,12 +163,7 @@ function scanQRCode() {
       qrResult.innerHTML = `<strong>✅ QR:</strong> ${decodedText}`;
       saveCurrentAreaData({ qr: decodedText }, areaNow);
       setTimeout(() => cekKelengkapanArea(), 300);
-
-      html5QrCode.stop().then(() => {
-        document.getElementById("reader").innerHTML = "";
-      }).catch(() => {
-        document.getElementById("reader").innerHTML = "";
-      });
+      stopCamera(); // stop setelah berhasil scan
     },
     (err) => {
       console.warn("QR scan error:", err);
