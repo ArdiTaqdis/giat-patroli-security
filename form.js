@@ -100,6 +100,7 @@ function ambilFoto() {
       const base64 = e.target.result;
       document.getElementById("previewFoto").innerHTML = `<img src="${base64}" style="width:100%; border-radius:10px;" />`;
       saveCurrentAreaData({ foto: base64 });
+      cekKelengkapanArea();
     };
     reader.readAsDataURL(file);
   };
@@ -116,6 +117,7 @@ function scanQRCode() {
     (decodedText) => {
       qrResult.innerHTML = `<strong>✅ QR:</strong> ${decodedText}`;
       saveCurrentAreaData({ qr: decodedText });
+      cekKelengkapanArea();
       html5QrCode.stop().then(() => (document.getElementById("reader").innerHTML = ""));
     },
     () => {}
@@ -147,11 +149,25 @@ function nextArea() {
   }, 100); // jeda 100ms agar simpan selesai
 }
 
+function cekKelengkapanArea() {
+  const areaData = JSON.parse(localStorage.getItem(`area${areaNow}`) || "{}");
+  const nextBtn = document.getElementById("nextBtn");
+
+  if (areaData.qr && areaData.foto) {
+    nextBtn.disabled = false;
+    nextBtn.innerText = areaNow < maxArea ? "➡️ Area Berikutnya" : "📤 Kirim Semua Data";
+  } else {
+    nextBtn.disabled = true;
+    nextBtn.innerText = "❌ Lengkapi Area Dulu";
+  }
+}
+
 
 function prevArea() {
   if (areaNow > 1) {
     areaNow--;
     updateAreaUI();
+    cekKelengkapanArea();
   }
 }
 
