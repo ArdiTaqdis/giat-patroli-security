@@ -78,13 +78,26 @@ function updateAreaUI() {
   if (areaData.foto) document.getElementById("previewFoto").innerHTML = `<img src="${areaData.foto}" style="width:100%; border-radius:10px;" />`;
   if (areaData.ket) document.getElementById("keterangan").value = areaData.ket;
 
-  document.getElementById("nextBtn").innerText = areaNow < maxArea ? "➡️ Area Berikutnya" : "📤 Kirim Semua Data";
+  cekKelengkapanArea();
 }
 
-function saveCurrentAreaData(newData) {
-  const current = JSON.parse(localStorage.getItem(`area${areaNow}`) || "{}");
+function cekKelengkapanArea() {
+  const areaData = JSON.parse(localStorage.getItem(`area${areaNow}`) || "{}");
+  const nextBtn = document.getElementById("nextBtn");
+
+  if (areaData.qr && areaData.foto) {
+    nextBtn.disabled = false;
+    nextBtn.innerText = areaNow < maxArea ? "➡️ Area Berikutnya" : "📤 Kirim Semua Data";
+  } else {
+    nextBtn.disabled = true;
+    nextBtn.innerText = "❌ Lengkapi Area Dulu";
+  }
+}
+
+function saveCurrentAreaData(newData, area = areaNow) {
+  const current = JSON.parse(localStorage.getItem(`area${area}`) || "{}");
   const updated = { ...current, ...newData };
-  localStorage.setItem(`area${areaNow}`, JSON.stringify(updated));
+  localStorage.setItem(`area${area}`, JSON.stringify(updated));
 }
 
 function ambilFoto() {
@@ -99,7 +112,7 @@ function ambilFoto() {
     reader.onload = (e) => {
       const base64 = e.target.result;
       document.getElementById("previewFoto").innerHTML = `<img src="${base64}" style="width:100%; border-radius:10px;" />`;
-      saveCurrentAreaData({ foto: base64 });
+      saveCurrentAreaData({ foto: base64 }, areaNow);
       cekKelengkapanArea();
     };
     reader.readAsDataURL(file);
@@ -116,7 +129,7 @@ function scanQRCode() {
     { fps: 10, qrbox: 250 },
     (decodedText) => {
       qrResult.innerHTML = `<strong>✅ QR:</strong> ${decodedText}`;
-      saveCurrentAreaData({ qr: decodedText });
+      saveCurrentAreaData({ qr: decodedText }, areaNow);
       cekKelengkapanArea();
       html5QrCode.stop().then(() => (document.getElementById("reader").innerHTML = ""));
     },
@@ -127,47 +140,27 @@ function scanQRCode() {
 }
 
 function nextArea() {
-  // Simpan keterangan dulu
   const ket = document.getElementById("keterangan").value;
-  saveCurrentAreaData({ ket });
+  saveCurrentAreaData({ ket }, areaNow);
 
-  // ⏳ Beri jeda kecil agar save() sempat selesai
-  setTimeout(() => {
-    const areaData = JSON.parse(localStorage.getItem(`area${areaNow}`) || "{}");
-
-    if (!areaData.qr || !areaData.foto) {
-      alert(`Mohon isi QR dan Foto untuk Area ${areaNow} terlebih dahulu.`);
-      return;
-    }
-
-    if (areaNow < maxArea) {
-      areaNow++;
-      updateAreaUI();
-    } else {
-      kirimSemuaData();
-    }
-  }, 100); // jeda 100ms agar simpan selesai
-}
-
-function cekKelengkapanArea() {
   const areaData = JSON.parse(localStorage.getItem(`area${areaNow}`) || "{}");
-  const nextBtn = document.getElementById("nextBtn");
+  if (!areaData.qr || !areaData.foto) {
+    alert(`Mohon isi QR dan Foto untuk Area ${areaNow} terlebih dahulu.`);
+    return;
+  }
 
-  if (areaData.qr && areaData.foto) {
-    nextBtn.disabled = false;
-    nextBtn.innerText = areaNow < maxArea ? "➡️ Area Berikutnya" : "📤 Kirim Semua Data";
+  if (areaNow < maxArea) {
+    areaNow++;
+    updateAreaUI();
   } else {
-    nextBtn.disabled = true;
-    nextBtn.innerText = "❌ Lengkapi Area Dulu";
+    kirimSemuaData();
   }
 }
-
 
 function prevArea() {
   if (areaNow > 1) {
     areaNow--;
     updateAreaUI();
-    cekKelengkapanArea();
   }
 }
 
