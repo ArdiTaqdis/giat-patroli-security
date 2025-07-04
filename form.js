@@ -112,8 +112,9 @@ function ambilFoto() {
     reader.onload = (e) => {
       const base64 = e.target.result;
       document.getElementById("previewFoto").innerHTML = `<img src="${base64}" style="width:100%; border-radius:10px;" />`;
-      saveCurrentAreaData({ foto: base64 }, areaNow);
-      cekKelengkapanArea();
+     saveCurrentAreaData({ foto: base64 }, areaNow);
+      setTimeout(() => cekKelengkapanArea(), 300);
+
     };
     reader.readAsDataURL(file);
   };
@@ -129,8 +130,9 @@ function scanQRCode() {
     { fps: 10, qrbox: 250 },
     (decodedText) => {
       qrResult.innerHTML = `<strong>✅ QR:</strong> ${decodedText}`;
-      saveCurrentAreaData({ qr: decodedText }, areaNow);
-      cekKelengkapanArea();
+      saveCurrentAreaData({ foto: base64 }, areaNow);
+      setTimeout(() => cekKelengkapanArea(), 300);
+
       html5QrCode.stop().then(() => (document.getElementById("reader").innerHTML = ""));
     },
     () => {}
