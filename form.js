@@ -201,6 +201,20 @@ function nextArea() {
   }, 1000);
 }
 
+// Fungsi buka scanner modal
+function openScanner() {
+  stopCamera(); // jaga-jaga, pastikan kamera tidak aktif dulu
+  document.getElementById("modalScanner").style.display = "flex";
+  scanQRCode(); // mulai scanner di dalam modal
+}
+
+// Fungsi tutup scanner modal
+function closeScanner() {
+  stopCamera();
+  document.getElementById("modalScanner").style.display = "none";
+}
+
+
 function prevArea() {
   if (areaNow > 1) {
     areaNow--;
