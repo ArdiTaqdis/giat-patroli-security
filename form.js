@@ -165,11 +165,26 @@ function nextArea() {
   const ket = document.getElementById("keterangan").value;
   saveCurrentAreaData({ ket }, areaSaatIni);
 
-  const areaData = areaCache[areaSaatIni] || JSON.parse(localStorage.getItem(`area${areaSaatIni}`) || "{}");
+  const areaData = JSON.parse(localStorage.getItem(`area${areaSaatIni}`) || "{}");
+
   if (!areaData.qr || !areaData.foto) {
     alert(`Mohon isi QR dan Foto untuk Area ${areaSaatIni} terlebih dahulu.`);
     return;
   }
+
+  document.getElementById("loadingAreaOverlay").style.display = "flex";
+
+  setTimeout(() => {
+    document.getElementById("loadingAreaOverlay").style.display = "none";
+    if (areaSaatIni < maxArea) {
+      areaNow++;
+      updateAreaUI();
+    } else {
+      kirimSemuaData();
+    }
+  }, 1000);
+}
+
 
   document.getElementById("loadingAreaOverlay").style.display = "flex";
 
