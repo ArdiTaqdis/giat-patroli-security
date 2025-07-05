@@ -1,6 +1,9 @@
-const scriptURL = "https://script.google.com/macros/s/AKfycbyMo-HUC8VoDEflt6eBTKGrVUMnrbvbjNRLXru9Ddd5Yzko1E07ZXM9_TD3dZzO0wUK8Q/exec";
+const scriptURL = "https://script.google.com/macros/s/AKfycbxy9J8w86sn_5mctVRQNpGX7BK-XRhXMoid7PgsYDdOPOx1z3QVn2iyfc5oal4sOS9dyA/exec";
 let areaNow = 1;
 const maxArea = 5;
+const areaFotoCache = {};
+const areaQRCache = {};
+const areaKetCache = {};
 
 const beforeUnloadHandler = (e) => {
   e.preventDefault();
@@ -24,175 +27,237 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("nip").innerText = nip;
   document.getElementById("nama").innerText = nama;
   document.getElementById("perusahaan").innerText = perusahaan;
-  document.getElementById("fotoUser").src = fotoUser || "https://cdn-icons-png.flaticon.com/512/149/149071.png";
+  if (fotoUser) document.getElementById("fotoUser").src = fotoUser;
 
   const now = new Date();
   document.getElementById("tanggal").innerText = now.toLocaleDateString("id-ID");
-  document.getElementById("jam").innerText = now.toLocaleTimeString("id-ID");
-  setInterval(() => {
-    document.getElementById("jam").innerText = new Date().toLocaleTimeString("id-ID");
-  }, 1000);
+  updateJam();
+  setInterval(updateJam, 1000);
 
+  // Ambil geolokasi dan alamat
   if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        const lat = pos.coords.latitude.toFixed(5);
-        const lon = pos.coords.longitude.toFixed(5);
-        document.getElementById("lokasi").innerText = `Lat: ${lat}, Lon: ${lon}`;
-        getAlamatFromKoordinat(lat, lon);
-      },
-      () => document.getElementById("lokasi").innerText = "❌ Akses lokasi ditolak",
-      { timeout: 8000 }
-    );
+    navigator.geolocation.getCurrentPosition(pos => {
+      const lat = pos.coords.latitude.toFixed(5);
+      const lon = pos.coords.longitude.toFixed(5);
+      document.getElementById("lokasi").innerText = `📍 ${lat}, ${lon}`;
+      getAlamatFromCoords(lat, lon);
+    }, () => {
+      document.getElementById("lokasi").innerText = "❌ Gagal ambil lokasi";
+    });
   }
 
-  updateAreaUI();
+  updateNavButtons();
 });
 
-function getAlamatFromKoordinat(lat, lon) {
-  const apiKey = "2bbd755924364128b9e1b32f2ca00375";
-  const url = `https://api.opencagedata.com/geocode/v1/json?q=${lat}+${lon}&key=${apiKey}&language=id`;
+function updateJam() {
+  document.getElementById("jam").innerText = new Date().toLocaleTimeString("id-ID");
+}
 
-  fetch(url)
+function getAlamatFromCoords(lat, lon) {
+  const url = `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`;
+  fetch(url, {
+    headers: { 'User-Agent': 'patroli-app/1.0' }
+  })
     .then(res => res.json())
     .then(data => {
-      if (data.results?.length) {
-        const c = data.results[0].components;
-        const alamat = [c.hamlet, c.village, c.suburb, c.city_district, c.city || c.county, c.state].filter(Boolean).join(', ');
-        document.getElementById("lokasi").innerText = alamat;
-      }
+      const alamat = data.display_name || `${lat}, ${lon}`;
+      document.getElementById("lokasi").innerText = alamat;
     })
-    .catch(() => document.getElementById("lokasi").innerText = "Gagal ambil alamat");
+    .catch(() => {
+      document.getElementById("lokasi").innerText = `${lat}, ${lon} (❌ alamat gagal)`;
+    });
 }
 
-function updateAreaUI() {
-  document.getElementById("areaNow").innerText = areaNow;
-  document.getElementById("areaTitle").innerText = `Area ${areaNow}`;
-  document.getElementById("qrResult").innerHTML = "";
-  document.getElementById("reader").innerHTML = "";
-  document.getElementById("previewFoto").innerHTML = `<span>📸 Foto akan tampil di sini</span>`;
-  document.getElementById("keterangan").value = "";
-
-  const areaData = JSON.parse(localStorage.getItem(`area${areaNow}`) || "{}");
-  if (areaData.qr) document.getElementById("qrResult").innerHTML = `<strong>✅ QR:</strong> ${areaData.qr}`;
-  if (areaData.foto) document.getElementById("previewFoto").innerHTML = `<img src="${areaData.foto}" style="width:100%; border-radius:10px;" />`;
-  if (areaData.ket) document.getElementById("keterangan").value = areaData.ket;
-
-  document.getElementById("nextBtn").innerText = areaNow < maxArea ? "➡️ Area Berikutnya" : "📤 Kirim Semua Data";
-}
-
-function saveCurrentAreaData(newData) {
-  const current = JSON.parse(localStorage.getItem(`area${areaNow}`) || "{}");
-  const updated = { ...current, ...newData };
-  localStorage.setItem(`area${areaNow}`, JSON.stringify(updated));
-}
-
-function ambilFoto() {
+async function ambilFoto() {
   const input = document.createElement("input");
   input.type = "file";
   input.accept = "image/*";
   input.capture = "environment";
-  input.onchange = () => {
+  input.click();
+
+  input.onchange = async () => {
     const file = input.files[0];
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = (e) => {
-      const base64 = e.target.result;
-      document.getElementById("previewFoto").innerHTML = `<img src="${base64}" style="width:100%; border-radius:10px;" />`;
-      saveCurrentAreaData({ foto: base64 });
+    reader.onload = async () => {
+      const compressed = await resizeImage(reader.result);
+      document.getElementById("fotoPreviewMini").src = compressed;
+      document.getElementById("fotoPreviewMini").style.display = "block";
+      areaFotoCache[`area${areaNow}`] = compressed;
     };
     reader.readAsDataURL(file);
   };
-  input.click();
 }
 
-let html5QrCode;
-function scanQRCode() {
-  const qrResult = document.getElementById("qrResult");
-  if (!html5QrCode) html5QrCode = new Html5Qrcode("reader");
-  html5QrCode.start(
-    { facingMode: "environment" },
-    { fps: 10, qrbox: 250 },
-    (decodedText) => {
-      qrResult.innerHTML = `<strong>✅ QR:</strong> ${decodedText}`;
-      saveCurrentAreaData({ qr: decodedText });
-      html5QrCode.stop().then(() => (document.getElementById("reader").innerHTML = ""));
-    },
-    () => {}
-  ).catch(err => {
-    qrResult.innerHTML = `❌ Tidak bisa akses kamera: ${err}`;
+function resizeImage(base64Str, maxWidth = 400, quality = 0.7) {
+  return new Promise((resolve) => {
+    let img = new Image();
+    img.src = base64Str;
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      const scaleSize = maxWidth / img.width;
+      canvas.width = maxWidth;
+      canvas.height = img.height * scaleSize;
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      const newBase64 = canvas.toDataURL("image/jpeg", quality);
+      resolve(newBase64);
+    };
   });
 }
 
 function nextArea() {
-  // Simpan keterangan dulu
-  const ket = document.getElementById("keterangan").value;
-  saveCurrentAreaData({ ket });
+  const foto = areaFotoCache[`area${areaNow}`];
+  const ket = document.getElementById("keterangan").value.trim();
+  const qr = document.getElementById("qrResult").innerText.trim();
 
-  // ⏳ Beri jeda kecil agar save() sempat selesai
+  if (!foto || !qr) {
+    alert("Lengkapi QR dan Foto sebelum lanjut.");
+    return;
+  }
+
+  document.getElementById("loadingOverlay").style.display = "flex";
+  areaKetCache[`area${areaNow}`] = ket;
+  areaQRCache[`area${areaNow}`] = qr;
+
   setTimeout(() => {
-    const areaData = JSON.parse(localStorage.getItem(`area${areaNow}`) || "{}");
-
-    if (!areaData.qr || !areaData.foto) {
-      alert(`Mohon isi QR dan Foto untuk Area ${areaNow} terlebih dahulu.`);
-      return;
-    }
+    localStorage.setItem(`fotoArea${areaNow}`, foto);
+    localStorage.setItem(`ketArea${areaNow}`, ket);
+    localStorage.setItem(`qrArea${areaNow}`, qr);
 
     if (areaNow < maxArea) {
       areaNow++;
-      updateAreaUI();
+      document.getElementById("areaNow").innerText = areaNow;
+      document.getElementById("areaTitle").innerText = `Area ${areaNow}`;
+      resetFormForNewArea();
+      updateNavButtons();
     } else {
-      kirimSemuaData();
+      alert("✅ Semua area selesai. Silakan kirim data.");
     }
-  }, 1000); // jeda 100ms agar simpan selesai
-}
 
+    document.getElementById("loadingOverlay").style.display = "none";
+  }, 800);
+}
 
 function prevArea() {
   if (areaNow > 1) {
     areaNow--;
-    updateAreaUI();
+    document.getElementById("areaNow").innerText = areaNow;
+    document.getElementById("areaTitle").innerText = `Area ${areaNow}`;
+    loadFormForArea();
+    updateNavButtons();
   }
 }
 
-async function kirimSemuaData() {
+function updateNavButtons() {
+  document.getElementById("prevBtn").disabled = areaNow === 1;
+  document.getElementById("nextBtn").innerText = areaNow === 5 ? '✅ Selesai' : '➡️ Area Berikutnya';
+}
+
+function resetFormForNewArea() {
+  document.getElementById("fotoPreviewMini").src = "";
+  document.getElementById("fotoPreviewMini").style.display = "none";
+  document.getElementById("qrResult").innerText = "";
+  document.getElementById("keterangan").value = "";
+}
+
+function loadFormForArea() {
+  const qr = localStorage.getItem(`qrArea${areaNow}`) || "";
+  const ket = localStorage.getItem(`ketArea${areaNow}`) || "";
+  const foto = localStorage.getItem(`fotoArea${areaNow}`) || "";
+
+  document.getElementById("qrResult").innerText = qr;
+  document.getElementById("keterangan").value = ket;
+  document.getElementById("fotoPreviewMini").src = foto;
+  document.getElementById("fotoPreviewMini").style.display = foto ? "block" : "none";
+}
+
+function scanQRCode() {
+  const qrDiv = document.getElementById("reader");
+  qrDiv.innerHTML = "";
+
+  const html5QrCode = new Html5Qrcode("reader");
+  html5QrCode.start(
+    { facingMode: "environment" },
+    { fps: 10, qrbox: 250 },
+    (decodedText) => {
+      html5QrCode.stop();
+      document.getElementById("qrResult").innerText = decodedText;
+      qrDiv.innerHTML = "";
+    },
+    () => {}
+  ).catch(err => {
+    document.getElementById("qrResult").innerText = "❌ Gagal scan: " + err;
+  });
+}
+
+// Modal kirim
+function openModal() {
+  document.getElementById("modalKirim").style.display = "flex";
+}
+function closeModal() {
+  document.getElementById("modalKirim").style.display = "none";
+}
+
+async function submitFinal() {
+  if (areaNow < 5) {
+    alert("⚠️ Lengkapi semua area terlebih dahulu.");
+    return;
+  }
+
+  for (let i = 1; i <= 5; i++) {
+    if (!localStorage.getItem(`fotoArea${i}`) || !localStorage.getItem(`qrArea${i}`)) {
+      alert(`Data Area ${i} belum lengkap.`);
+      return;
+    }
+  }
+
   document.getElementById("loadingOverlay").style.display = "flex";
 
-  const nip = document.getElementById("nip").innerText;
-  const nama = document.getElementById("nama").innerText;
-  const perusahaan = document.getElementById("perusahaan").innerText;
-  const tanggal = document.getElementById("tanggal").innerText || "";
-  const jam = document.getElementById("jam").innerText || "";
-  const lokasi = document.getElementById("lokasi").innerText || "Lokasi tidak tersedia";
+  const nip = localStorage.getItem("nipLogin");
+  const nama = localStorage.getItem("nama");
+  const perusahaan = localStorage.getItem("perusahaan");
+  const lokasi = document.getElementById("lokasi").innerText;
+  const tanggal = document.getElementById("tanggal").innerText;
+  const jam = document.getElementById("jam").innerText;
+  const timestamp = new Date().toISOString();
 
-  const formBody = new URLSearchParams({ action: "patroli", nip, nama, perusahaan, tanggal, jam, lokasi });
+  const formData = {
+    action: "patroli",
+    nip, nama, perusahaan, tanggal, jam, lokasi, timestamp,
+    status: "Proses"
+  };
 
-  for (let i = 1; i <= maxArea; i++) {
-    const data = JSON.parse(localStorage.getItem(`area${i}`) || "{}");
-    formBody.append(`qr${i}`, data.qr || "");
-    formBody.append(`foto${i}`, data.foto || "");
-    formBody.append(`ket${i}`, data.ket || "");
+  for (let i = 1; i <= 5; i++) {
+    formData[`qr${i}`] = localStorage.getItem(`qrArea${i}`);
+    formData[`foto${i}`] = localStorage.getItem(`fotoArea${i}`);
+    formData[`ket${i}`] = localStorage.getItem(`ketArea${i}`) || "";
   }
 
   try {
     const res = await fetch(scriptURL, {
       method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: formBody.toString()
+      body: new URLSearchParams(formData)
     });
 
-    const text = await res.text();
-    document.getElementById("status").innerText = text;
-    document.getElementById("loadingOverlay").style.display = "none";
+    const result = await res.json();
 
-    if (text.toLowerCase().includes("berhasil")) {
+    if (result.status === "success") {
       alert("✅ Data patroli berhasil dikirim!");
-      for (let i = 1; i <= maxArea; i++) localStorage.removeItem(`area${i}`);
-      window.removeEventListener("beforeunload", beforeUnloadHandler);
-      setTimeout(() => (window.location.href = "index.html"), 2500);
+      for (let i = 1; i <= 5; i++) {
+        localStorage.removeItem(`qrArea${i}`);
+        localStorage.removeItem(`fotoArea${i}`);
+        localStorage.removeItem(`ketArea${i}`);
+      }
+      window.location.href = "index.html";
+    } else {
+      alert("❌ Gagal mengirim data.");
     }
-  } catch (err) {
+  } catch (error) {
+    console.error("Error:", error);
+    alert("❌ Terjadi kesalahan saat kirim.");
+  } finally {
+    closeModal();
     document.getElementById("loadingOverlay").style.display = "none";
-    document.getElementById("status").innerText = "❌ Gagal mengirim: " + err.message;
   }
 }

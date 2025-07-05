@@ -25,6 +25,8 @@
       <div><strong>Perusahaan:</strong> <span id="perusahaan">-</span></div>
     </div>
 
+    
+
     <!-- Waktu dan Lokasi -->
     <div class="info-waktu" style="margin-top: 10px;">
       <div><strong>Tanggal:</strong> <span id="tanggal">-</span></div>
@@ -44,8 +46,8 @@
       <div id="reader" style="width: 300px; margin-top: 10px;"></div>
 
       <button type="button" onclick="ambilFoto()">📸 Ambil Foto Area</button>
-      <div class="foto-preview" id="previewFoto">
-        <span>📸 Foto akan tampil di sini</span>
+      <div class="preview-mini">
+        <img id="fotoPreviewMini" src="" alt="Preview Foto" style="width: 100px; display: none; border-radius: 8px;" />
       </div>
 
       <textarea id="keterangan" placeholder="Keterangan area" rows="3"></textarea>
@@ -53,7 +55,14 @@
       <div style="display: flex; gap: 10px; margin-top: 15px;">
         <button type="button" id="prevBtn" onclick="prevArea()">⬅️ Area Sebelumnya</button>
         <button type="button" id="nextBtn" onclick="nextArea()">➡️ Area Berikutnya</button>
+        
       </div>
+
+      <!-- Tombol Kirim Patroli (dengan Popup) -->
+          <div style="margin-top: 20px; text-align: center;">
+            <button type="button" onclick="openModal()">🚀 Kirim Patroli</button>
+          </div>
+
     </div>
 
     <div id="status" style="margin-top: 20px;"></div>
@@ -102,5 +111,32 @@
       0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); }
     }
   </style>
+
+  <!-- Modal Kirim -->
+<div id="modalKirim" class="modal">
+  <div class="modal-content">
+    <h3>Konfirmasi Kirim Patroli</h3>
+    <p>Yakin ingin mengirim data patroli?</p>
+    <div style="margin-top: 15px; display: flex; gap: 10px; justify-content: flex-end;">
+      <button onclick="closeModal()">❌ Batal</button>
+      <button onclick="submitFinal()">✅ Kirim</button>
+    </div>
+  </div>
+</div>
+
+<style>
+  .modal {
+    display: none; position: fixed; z-index: 9999;
+    left: 0; top: 0; width: 100%; height: 100%;
+    background-color: rgba(0,0,0,0.5);
+    align-items: center; justify-content: center;
+  }
+  .modal-content {
+    background-color: white; padding: 20px;
+    border-radius: 12px; max-width: 400px;
+    text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  }
+</style>
+
 </body>
 </html>
