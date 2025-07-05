@@ -92,13 +92,23 @@ function updateAreaUI() {
   document.getElementById("previewFoto").innerHTML = `<span>📸 Foto akan tampil di sini</span>`;
 
   const areaData = areaCache[areaNow] || JSON.parse(localStorage.getItem(`area${areaNow}`) || "{}");
-  document.getElementById("qrResult").innerHTML = areaData.qr ? `<strong>✅ QR:</strong> ${areaData.qr}` : "";
+ document.getElementById("qrResult").innerHTML = `<strong>✅ QR:</strong> ${decodedText}`;
   document.getElementById("keterangan").value = areaData.ket || "";
   if (areaData.foto) {
     document.getElementById("previewFoto").innerHTML = `<img src="${areaData.foto}" style="width:100%; border-radius:10px;" />`;
   }
 
   setTimeout(() => cekKelengkapanArea(), 300);
+}
+
+function startScan() {
+  document.getElementById("scannerContainer").style.display = "block";
+  scanQRCode();
+}
+
+function stopScan() {
+  stopCamera();
+  document.getElementById("scannerContainer").style.display = "none";
 }
 
 function cekKelengkapanArea() {
