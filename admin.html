@@ -12,7 +12,156 @@
   <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
   <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.dataTables.min.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
-  <link rel="stylesheet" href="admin.css" />
+
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: #f4f7fc;
+      padding: 20px;
+    }
+
+    h2 {
+      text-align: center;
+      background-color: #1976d2;
+      color: white;
+      padding: 16px;
+      border-radius: 12px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+
+    .filter-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      align-items: center;
+      margin: 20px 0;
+    }
+
+    .filter-bar label {
+      font-weight: 600;
+    }
+
+    .filter-bar input,
+    .filter-bar select {
+      padding: 8px 12px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+    }
+
+    #dataTabel_wrapper {
+      overflow-x: auto;
+    }
+
+    table.dataTable th {
+      background: #0d47a1;
+      color: white;
+      text-align: center;
+    }
+
+    table.dataTable tbody tr:hover {
+      background: #e3f2fd;
+    }
+
+    td img {
+      max-width: 60px;
+      border-radius: 4px;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5);
+      justify-content: center;
+      align-items: center;
+      z-index: 999;
+    }
+
+    .modal-content {
+      background: #fff;
+      padding: 24px;
+      border-radius: 12px;
+      width: 100%;
+      max-width: 500px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+    }
+
+    .modal-footer {
+      text-align: right;
+      margin-top: 15px;
+    }
+
+    .modal-footer button {
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-weight: bold;
+      margin-left: 10px;
+    }
+
+    button.edit {
+      background: #1976d2;
+      color: white;
+    }
+
+    button.hapus {
+      background: #d32f2f;
+      color: white;
+    }
+
+    button.simpan {
+      background: #2e7d32;
+      color: white;
+    }
+
+    #loadingOverlay {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(255,255,255,0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      font-size: 18px;
+    }
+
+    /* Fix pagination/info/buttons agar tidak ikut scroll horizontal */
+    div.dataTables_wrapper .dataTables_paginate,
+    div.dataTables_wrapper .dataTables_info,
+    div.dataTables_wrapper .dt-buttons {
+      background: #f4f7fc;
+      position: sticky;
+      bottom: 0;
+      z-index: 20;
+      padding: 10px;
+    }
+
+    @media (max-width: 768px) {
+      .filter-bar {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      table.dataTable {
+        font-size: 12px;
+      }
+
+      .modal-content {
+        width: 90%;
+      }
+
+      .modal-footer {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .modal-footer button {
+        margin: 5px 0;
+        width: 100%;
+      }
+    }
+  </style>
 
   <!-- Scripts -->
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -34,12 +183,10 @@
   <div class="filter-bar">
     <label>Timestamp:</label>
     <input type="text" id="filterTimestamp" placeholder="Pilih rentang tanggal & jam">
-
     <label>Perusahaan:</label>
     <select id="filterPerusahaan">
       <option value="">Semua</option>
     </select>
-
     <label>Status:</label>
     <select id="filterStatus">
       <option value="">Semua</option>
@@ -49,27 +196,29 @@
     </select>
   </div>
 
-  <table id="dataTabel" class="display nowrap">
-    <thead>
-      <tr>
-        <th>Timestamp</th>
-        <th>NIP</th>
-        <th>Nama</th>
-        <th>Perusahaan</th>
-        <th>Tanggal</th>
-        <th>Jam</th>
-        <th>Lokasi</th>
-        <th>QR1</th><th>Foto1</th><th>Ket1</th>
-        <th>QR2</th><th>Foto2</th><th>Ket2</th>
-        <th>QR3</th><th>Foto3</th><th>Ket3</th>
-        <th>QR4</th><th>Foto4</th><th>Ket4</th>
-        <th>QR5</th><th>Foto5</th><th>Ket5</th>
-        <th>Status</th>
-        <th>Aksi</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
+  <div style="overflow-x: auto;">
+    <table id="dataTabel" class="display nowrap" style="width:100%">
+      <thead>
+        <tr>
+          <th>Timestamp</th>
+          <th>NIP</th>
+          <th>Nama</th>
+          <th>Perusahaan</th>
+          <th>Tanggal</th>
+          <th>Jam</th>
+          <th>Lokasi</th>
+          <th>QR1</th><th>Foto1</th><th>Ket1</th>
+          <th>QR2</th><th>Foto2</th><th>Ket2</th>
+          <th>QR3</th><th>Foto3</th><th>Ket3</th>
+          <th>QR4</th><th>Foto4</th><th>Ket4</th>
+          <th>QR5</th><th>Foto5</th><th>Ket5</th>
+          <th>Status</th>
+          <th>Aksi</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
 
   <!-- Modal -->
   <div id="editModal" class="modal">
@@ -96,7 +245,7 @@
     </div>
   </div>
 
-  
+  <!-- JavaScript Logic -->
   <script src="admin.js"></script>
 </body>
 </html>

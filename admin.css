@@ -124,3 +124,15 @@ button:hover { opacity: 0.9; cursor: pointer; }
     font-size: 12px;
   }
 }
+
+
+/* Sticky pagination */
+div.dataTables_wrapper .dataTables_paginate,
+div.dataTables_wrapper .dataTables_info,
+div.dataTables_wrapper .dt-buttons {
+  background: #f4f7fc;
+  position: sticky;
+  bottom: 0;
+  z-index: 20;
+  padding: 10px;
+}

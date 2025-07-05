@@ -1,4 +1,3 @@
-
 const scriptURL = 'https://script.google.com/macros/s/AKfycbxy9J8w86sn_5mctVRQNpGX7BK-XRhXMoid7PgsYDdOPOx1z3QVn2iyfc5oal4sOS9dyA/exec';
 let table, allData = [];
 
@@ -10,40 +9,52 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   table = $('#dataTabel').DataTable({
     data: allData,
-    columns: [
-      { data: 'Timestamp', render: d => new Date(d).toLocaleString('id-ID') },
-      { data: 'NIP' }, { data: 'Nama' }, { data: 'Perusahaan' },
-      { data: 'Tanggal', render: d => moment(d).format('DD/MM/YYYY') }, { data: 'Jam' }, { data: 'Lokasi' },
-      { data: 'QR1' }, { data: 'Foto1', render: d => d ? `<img src="${d}">` : '-' }, { data: 'Ket1' },
-      { data: 'QR2' }, { data: 'Foto2', render: d => d ? `<img src="${d}">` : '-' }, { data: 'Ket2' },
-      { data: 'QR3' }, { data: 'Foto3', render: d => d ? `<img src="${d}">` : '-' }, { data: 'Ket3' },
-      { data: 'QR4' }, { data: 'Foto4', render: d => d ? `<img src="${d}">` : '-' }, { data: 'Ket4' },
-      { data: 'QR5' }, { data: 'Foto5', render: d => d ? `<img src="${d}">` : '-' }, { data: 'Ket5' },
-      {
-        data: 'Status',
-        render: d => {
-          if (d === "Done") return `<span style="color: white; background: #4caf50; padding: 4px 10px; border-radius: 8px;">${d}</span>`;
-          if (d === "Expired") return `<span style="color: white; background: #f44336; padding: 4px 10px; border-radius: 8px;">${d}</span>`;
-          return `<span style="color: white; background: #ff9800; padding: 4px 10px; border-radius: 8px;">${d || 'Proses'}</span>`;
-        }
-      },
-      {
-        data: null,
-        render: (d, t, row, meta) => `
-          <button onclick="cetakPDF(${meta.row})">📄 PDF</button>  
-          <button class="edit" onclick="openEditModal(${meta.row})">✏️ Edit</button>
-          <button class="hapus" onclick="hapusData(${meta.row})">🗑️ Hapus</button>`
-      }
-    ],
+    columns: generateColumns(),
     dom: 'Bfrtip',
     buttons: ['excelHtml5', 'pdfHtml5', 'print'],
     scrollX: true
   });
 
-  // Filter Timestamp
+  setupFilters();
+});
+
+function generateColumns() {
+  const base = [
+    { data: 'Timestamp', render: d => new Date(d).toLocaleString('id-ID') },
+    { data: 'NIP' }, { data: 'Nama' }, { data: 'Perusahaan' },
+    { data: 'Tanggal', render: d => moment(d).format('DD/MM/YYYY') },
+    { data: 'Jam' }, { data: 'Lokasi' }
+  ];
+
+  for (let i = 1; i <= 5; i++) {
+    base.push({ data: `QR${i}` });
+    base.push({ data: `Foto${i}`, render: d => d ? `<img src="${d}">` : '-' });
+    base.push({ data: `Ket${i}` });
+  }
+
+  base.push({
+    data: 'Status',
+    render: d => {
+      if (d === "Done") return `<span style="color: white; background: #4caf50; padding: 4px 10px; border-radius: 8px;">${d}</span>`;
+      if (d === "Expired") return `<span style="color: white; background: #f44336; padding: 4px 10px; border-radius: 8px;">${d}</span>`;
+      return `<span style="color: white; background: #ff9800; padding: 4px 10px; border-radius: 8px;">${d || 'Proses'}</span>`;
+    }
+  });
+
+  base.push({
+    data: null,
+    render: (d, t, row, meta) => `
+      <button onclick="cetakPDF(${meta.row})">📄 PDF</button>  
+      <button class="edit" onclick="openEditModal(${meta.row})">✏️ Edit</button>
+      <button class="hapus" onclick="hapusData(${meta.row})">🗑️ Hapus</button>`
+  });
+
+  return base;
+}
+
+function setupFilters() {
   $('#filterTimestamp').daterangepicker({
-    timePicker: true,
-    timePicker24Hour: true,
+    timePicker: true, timePicker24Hour: true,
     locale: { format: 'DD/MM/YYYY HH:mm' },
     autoUpdateInput: false
   });
@@ -66,7 +77,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     table.draw();
   });
 
-  // Populate filter dropdown
   const perusahaanSet = new Set(allData.map(d => d.Perusahaan));
   perusahaanSet.forEach(p => {
     $('#filterPerusahaan').append(`<option value="${p}">${p}</option>`);
@@ -74,22 +84,69 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   $('#filterPerusahaan, #filterStatus').on('change', () => table.draw());
 
-  // Filter status & perusahaan dari allData asli
-  $.fn.dataTable.ext.search.push(function(settings, data, dataIndex) {
+  $.fn.dataTable.ext.search.push(function(settings, data) {
     const perusahaan = $('#filterPerusahaan').val();
     const status = $('#filterStatus').val();
-    const row = allData[dataIndex];
-
-    const matchPerusahaan = !perusahaan || row.Perusahaan === perusahaan;
-    const matchStatus = !status || row.Status === status;
-
-    return matchPerusahaan && matchStatus;
+    const perusahaanData = data[3];
+    const statusData = data[21];
+    return (!perusahaan || perusahaanData === perusahaan) &&
+           (!status || statusData === status);
   });
-});
+}
+
+function openEditModal(index) {
+  const d = allData[index];
+  document.getElementById('editNip').value = d.NIP;
+  document.getElementById('editNama').value = d.Nama;
+  document.getElementById('editStatus').value = d.Status || '';
+  document.getElementById('editModal').style.display = "flex";
+  document.getElementById('editModal').dataset.index = index;
+}
+
+function tutupModal() {
+  document.getElementById('editModal').style.display = "none";
+}
+
+async function simpanEdit() {
+  document.getElementById("loadingOverlay").style.display = "flex";
+  const index = document.getElementById('editModal').dataset.index;
+  const row = allData[index];
+  const statusBaru = document.getElementById('editStatus').value;
+
+  const payload = new URLSearchParams();
+  payload.append('action', 'updateKeterangan1');
+  payload.append('timestamp', row.Timestamp);
+  payload.append('status', statusBaru);
+
+  try {
+    const res = await fetch(scriptURL, { method: 'POST', body: payload });
+    const msg = await res.text();
+    alert(msg);
+    location.reload();
+  } catch (err) {
+    alert("❌ Gagal simpan perubahan.");
+  } finally {
+    document.getElementById("loadingOverlay").style.display = "none";
+  }
+}
+
+function hapusData(index) {
+  if (!confirm("Yakin ingin menghapus data ini?")) return;
+  const row = allData[index];
+  const payload = new URLSearchParams();
+  payload.append('action', 'deleteAbsen');
+  payload.append('timestamp', row.Timestamp);
+
+  fetch(scriptURL, { method: "POST", body: payload })
+    .then(res => res.text())
+    .then(alert)
+    .then(() => location.reload());
+}
 
 function cetakPDF(index) {
   const data = allData[index];
-  const doc = new window.jspdf.jsPDF();
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
 
   doc.setFontSize(16);
   doc.text(`Laporan Patroli - ${data.Nama}`, 14, 20);
