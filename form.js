@@ -34,7 +34,6 @@ document.addEventListener("DOMContentLoaded", () => {
   updateJam();
   setInterval(updateJam, 1000);
 
-  // Ambil geolokasi dan alamat
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(pos => {
       const lat = pos.coords.latitude.toFixed(5);
@@ -142,32 +141,18 @@ function nextArea() {
 function updateNavButtons() {
   const nextBtn = document.getElementById("nextBtn");
 
-  // Ubah teks tombol sesuai area
   nextBtn.innerText = areaNow === 5
     ? '🚀 Selesai dan Kirim'
     : '➡️ Area Berikutnya';
 
-  // Ubah warna tombol juga
   nextBtn.style.backgroundColor = areaNow === 5 ? '#d32f2f' : '#2d800d';
 }
-
 
 function resetFormForNewArea() {
   document.getElementById("fotoPreviewMini").src = "";
   document.getElementById("fotoPreviewMini").style.display = "none";
   document.getElementById("qrResult").innerText = "";
   document.getElementById("keterangan").value = "";
-}
-
-function loadFormForArea() {
-  const qr = localStorage.getItem(`qrArea${areaNow}`) || "";
-  const ket = localStorage.getItem(`ketArea${areaNow}`) || "";
-  const foto = localStorage.getItem(`fotoArea${areaNow}`) || "";
-
-  document.getElementById("qrResult").innerText = qr;
-  document.getElementById("keterangan").value = ket;
-  document.getElementById("fotoPreviewMini").src = foto;
-  document.getElementById("fotoPreviewMini").style.display = foto ? "block" : "none";
 }
 
 function scanQRCode() {
@@ -189,7 +174,6 @@ function scanQRCode() {
   });
 }
 
-// Modal kirim
 function openModal() {
   document.getElementById("modalKirim").style.display = "flex";
 }
@@ -241,21 +225,23 @@ async function submitFinal() {
     const result = await res.json();
 
     if (result.status === "success") {
-      // ✅ Bersihkan semua cache dan redirect
       for (let i = 1; i <= 5; i++) {
         localStorage.removeItem(`qrArea${i}`);
         localStorage.removeItem(`fotoArea${i}`);
         localStorage.removeItem(`ketArea${i}`);
       }
 
-      window.removeEventListener("beforeunload", beforeUnloadHandler); // ⬅️ Ini penting!
+      localStorage.removeItem("nipLogin");
+      localStorage.removeItem("nama");
+      localStorage.removeItem("perusahaan");
+      localStorage.removeItem("fotoUser");
+
+      window.removeEventListener("beforeunload", beforeUnloadHandler);
       document.getElementById("redirectOverlay").classList.add("show");
 
       setTimeout(() => {
         window.location.href = "index.html";
-      }, 1500); // ⏱️ beri waktu animasi 1.5 detik
-
-      window.location.href = "index.html"; // ⬅️ Redirect tanpa alert keluar
+      }, 1500);
     } else {
       alert("❌ Gagal mengirim data.");
     }
