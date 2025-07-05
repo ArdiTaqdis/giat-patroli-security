@@ -132,7 +132,7 @@ function nextArea() {
       resetFormForNewArea();
       updateNavButtons();
     } else {
-      alert("✅ Semua area selesai. Silakan kirim data.");
+      openModal();
     }
 
     document.getElementById("loadingOverlay").style.display = "none";
