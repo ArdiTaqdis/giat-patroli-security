@@ -41,11 +41,11 @@
 
     <div id="stepContainer">
       <h2 id="areaTitle">Area 1</h2>
-      <button type="button" onclick="scanQRCode()">🔍 Scan QR Code</button>
+      <button type="buttonqrcm" onclick="scanQRCode()">🔍 Scan QR Code</button>
       <div id="qrResult"></div>
       <div id="reader" style="width: 300px; margin-top: 10px;"></div>
 
-      <button type="button" onclick="ambilFoto()">📸 Ambil Foto Area</button>
+      <button type="buttonqrcm" onclick="ambilFoto()">📸 Ambil Foto Area</button>
       <div class="preview-mini">
         <img id="fotoPreviewMini" src="" alt="Preview Foto" style="width: 100px; display: none; border-radius: 8px;" />
       </div>
@@ -91,6 +91,14 @@
       width: 100%; padding: 10px; margin-top: 10px;
       border-radius: 6px; border: 1px solid #ccc; resize: none;
     }
+
+    .buttonqrcm {
+      display: block; width: 100%; margin-top: 15px; padding: 10px;
+      background-color: #b9301e; color: white; border: none;
+      border-radius: 8px; cursor: pointer;
+    }
+
+
     button {
       display: block; width: 100%; margin-top: 15px; padding: 10px;
       background-color: #1976d2; color: white; border: none;

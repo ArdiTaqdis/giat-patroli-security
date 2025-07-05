@@ -6,11 +6,11 @@ body {
 }
 
 .judul {
-  background: #0d47a1;
+  background: #e62020;
   color: white;
   padding: 20px;
   text-align: center;
-  border-bottom: 4px solid #1976d2;
+  border-bottom: 4px solid #e73f3f;
   box-shadow: 0 2px 6px rgba(0,0,0,0.2);
   margin-bottom: 15px;
 }
@@ -89,11 +89,11 @@ button {
 }
 
 button[type="button"] {
-  background: #0288d1;
+  background: #e62020;
 }
 
 button[type="button"]:hover {
-  background: #0277bd;
+  background: #b41818;
 }
 
 button[type="submit"] {
