@@ -146,7 +146,6 @@ function scanQRCode() {
       qrResult.innerHTML = `<strong>✅ QR:</strong> ${decodedText}`;
       saveCurrentAreaData({ qr: decodedText }, areaNow);
       setTimeout(() => cekKelengkapanArea(), 300);
-
       html5QrCode.stop().then(() => {
         document.getElementById("reader").innerHTML = "";
       }).catch(() => {
@@ -176,7 +175,6 @@ function nextArea() {
 
   setTimeout(() => {
     document.getElementById("loadingAreaOverlay").style.display = "none";
-
     if (areaSaatIni < maxArea) {
       areaNow = areaSaatIni + 1;
       updateAreaUI();
