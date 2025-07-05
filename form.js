@@ -186,19 +186,6 @@ function nextArea() {
 }
 
 
-  document.getElementById("loadingAreaOverlay").style.display = "flex";
-
-  setTimeout(() => {
-    document.getElementById("loadingAreaOverlay").style.display = "none";
-    if (areaSaatIni < maxArea) {
-      areaNow = areaSaatIni + 1;
-      updateAreaUI();
-    } else {
-      kirimSemuaData();
-    }
-  }, 1000);
-}
-
 function prevArea() {
   if (areaNow > 1) {
     areaNow--;
