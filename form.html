@@ -53,7 +53,6 @@
       <textarea id="keterangan" placeholder="Keterangan area" rows="3"></textarea>
 
       <div style="display: flex; gap: 10px; margin-top: 15px;">
-        <!-- <button type="button" id="prevBtn" onclick="prevArea()">⬅️ Area Sebelumnya</button> -->
         <button type="button" id="nextBtn" onclick="nextArea()">➡️ Area Berikutnya</button>
         
       </div>
@@ -110,6 +109,26 @@
       border-top: 5px solid #2196f3; border-radius: 50%;
       animation: spin 1s linear infinite;
     }
+
+    #redirectOverlay {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(244, 67, 54, 0.95); /* merah tua transparan */
+      display: none;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      z-index: 99999;
+      opacity: 0;
+      transition: opacity 0.6s ease;
+    }
+
+    #redirectOverlay.show {
+      display: flex;
+      opacity: 1;
+    }
+
     @keyframes spin {
       0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); }
     }
@@ -141,6 +160,12 @@
     text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.2);
   }
 </style>
+
+<!-- Redirect Overlay -->
+<div id="redirectOverlay">
+  <div class="spinner"></div>
+  <p style="color:white; margin-top:10px;">Mengalihkan ke halaman utama...</p>
+</div>
 
 
 </body>

@@ -139,20 +139,18 @@ function nextArea() {
   }, 800);
 }
 
-function prevArea() {
-  if (areaNow > 1) {
-    areaNow--;
-    document.getElementById("areaNow").innerText = areaNow;
-    document.getElementById("areaTitle").innerText = `Area ${areaNow}`;
-    loadFormForArea();
-    updateNavButtons();
-  }
+function updateNavButtons() {
+  const nextBtn = document.getElementById("nextBtn");
+
+  // Ubah teks tombol sesuai area
+  nextBtn.innerText = areaNow === 5
+    ? '🚀 Selesai dan Kirim'
+    : '➡️ Area Berikutnya';
+
+  // Ubah warna tombol juga
+  nextBtn.style.backgroundColor = areaNow === 5 ? '#d32f2f' : '#2d800d';
 }
 
-function updateNavButtons() {
-  document.getElementById("prevBtn").disabled = areaNow === 1;
-  document.getElementById("nextBtn").innerText = areaNow === 5 ? '✅ Selesai' : '➡️ Area Berikutnya';
-}
 
 function resetFormForNewArea() {
   document.getElementById("fotoPreviewMini").src = "";
@@ -251,6 +249,12 @@ async function submitFinal() {
       }
 
       window.removeEventListener("beforeunload", beforeUnloadHandler); // ⬅️ Ini penting!
+      document.getElementById("redirectOverlay").classList.add("show");
+
+      setTimeout(() => {
+        window.location.href = "index.html";
+      }, 1500); // ⏱️ beri waktu animasi 1.5 detik
+
       window.location.href = "index.html"; // ⬅️ Redirect tanpa alert keluar
     } else {
       alert("❌ Gagal mengirim data.");
