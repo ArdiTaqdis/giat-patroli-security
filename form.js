@@ -83,8 +83,10 @@ function updateAreaUI() {
 }
 
 function cekKelengkapanArea() {
-  const areaData = areaCache[areaNow] || JSON.parse(localStorage.getItem(`area${areaNow}`) || "{}");
+  const areaData = JSON.parse(localStorage.getItem(`area${areaNow}`) || "{}");
   const nextBtn = document.getElementById("nextBtn");
+
+  console.log(`Debug areaData Area-${areaNow}:`, areaData); // debugging tambahan
 
   if (areaData.qr && areaData.foto) {
     nextBtn.disabled = false;
@@ -94,6 +96,7 @@ function cekKelengkapanArea() {
     nextBtn.innerText = "❌ Lengkapi Area Dulu";
   }
 }
+
 
 function saveCurrentAreaData(newData, area = areaNow) {
   areaCache[area] = { ...(areaCache[area] || {}), ...newData };
@@ -166,6 +169,8 @@ function nextArea() {
   saveCurrentAreaData({ ket }, areaSaatIni);
 
   const areaData = JSON.parse(localStorage.getItem(`area${areaSaatIni}`) || "{}");
+
+  console.log(`nextArea(): areaData Area-${areaSaatIni}`, areaData); // debugging tambahan
 
   if (!areaData.qr || !areaData.foto) {
     alert(`Mohon isi QR dan Foto untuk Area ${areaSaatIni} terlebih dahulu.`);
