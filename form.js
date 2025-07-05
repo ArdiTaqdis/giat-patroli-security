@@ -125,22 +125,28 @@ function scanQRCode() {
 }
 
 function nextArea() {
+  // Simpan keterangan dulu
   const ket = document.getElementById("keterangan").value;
   saveCurrentAreaData({ ket });
 
-  const areaData = JSON.parse(localStorage.getItem(`area${areaNow}`) || "{}");
-  if (!areaData.qr || !areaData.foto) {
-    alert(`Mohon isi QR dan Foto untuk Area ${areaNow} terlebih dahulu.`);
-    return;
-  }
+  // ⏳ Beri jeda kecil agar save() sempat selesai
+  setTimeout(() => {
+    const areaData = JSON.parse(localStorage.getItem(`area${areaNow}`) || "{}");
 
-  if (areaNow < maxArea) {
-    areaNow++;
-    updateAreaUI();
-  } else {
-    kirimSemuaData();
-  }
+    if (!areaData.qr || !areaData.foto) {
+      alert(`Mohon isi QR dan Foto untuk Area ${areaNow} terlebih dahulu.`);
+      return;
+    }
+
+    if (areaNow < maxArea) {
+      areaNow++;
+      updateAreaUI();
+    } else {
+      kirimSemuaData();
+    }
+  }, 1000); // jeda 100ms agar simpan selesai
 }
+
 
 function prevArea() {
   if (areaNow > 1) {
