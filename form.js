@@ -1,8 +1,7 @@
-
 const scriptURL = "https://script.google.com/macros/s/AKfycbyMo-HUC8VoDEflt6eBTKGrVUMnrbvbjNRLXru9Ddd5Yzko1E07ZXM9_TD3dZzO0wUK8Q/exec";
 let areaNow = 1;
 const maxArea = 5;
-const areaCache = {};
+const areaCache = {}; // RAM cache agar aman simpan data besar
 
 const beforeUnloadHandler = (e) => {
   e.preventDefault();
@@ -40,7 +39,7 @@ document.addEventListener("DOMContentLoaded", () => {
       (pos) => {
         const lat = pos.coords.latitude.toFixed(5);
         const lon = pos.coords.longitude.toFixed(5);
-        document.getElementById("lokasi").innerText = `Lat: ${lat}, Lon: ${lon}`;
+        document.getElementById("lokasi").innerText = Lat: ${lat}, Lon: ${lon};
         getAlamatFromKoordinat(lat, lon);
       },
       () => document.getElementById("lokasi").innerText = "❌ Akses lokasi ditolak",
@@ -53,7 +52,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 function getAlamatFromKoordinat(lat, lon) {
   const apiKey = "2bbd755924364128b9e1b32f2ca00375";
-  const url = `https://api.opencagedata.com/geocode/v1/json?q=${lat}+${lon}&key=${apiKey}&language=id`;
+  const url = https://api.opencagedata.com/geocode/v1/json?q=${lat}+${lon}&key=${apiKey}&language=id;
 
   fetch(url)
     .then(res => res.json())
@@ -67,52 +66,24 @@ function getAlamatFromKoordinat(lat, lon) {
     .catch(() => document.getElementById("lokasi").innerText = "Gagal ambil alamat");
 }
 
-function stopCamera() {
-  const videoEl = document.querySelector("video");
-  if (videoEl && videoEl.srcObject) {
-    videoEl.srcObject.getTracks().forEach((track) => track.stop());
-    videoEl.srcObject = null;
-  }
-  if (html5QrCode && html5QrCode._isScanning) {
-    html5QrCode.stop().then(() => {
-      document.getElementById("reader").innerHTML = "";
-    }).catch((err) => {
-      console.warn("Gagal stop kamera QR:", err);
-    });
-  }
-}
-
 function updateAreaUI() {
-  stopCamera();
-
   document.getElementById("areaNow").innerText = areaNow;
-  document.getElementById("areaTitle").innerText = `Area ${areaNow}`;
-  document.getElementById("reader").innerHTML = "";
+  document.getElementById("areaTitle").innerText = Area ${areaNow};
   document.getElementById("qrResult").innerHTML = "";
-  document.getElementById("previewFoto").innerHTML = `<span>📸 Foto akan tampil di sini</span>`;
+  document.getElementById("reader").innerHTML = "";
+  document.getElementById("previewFoto").innerHTML = <span>📸 Foto akan tampil di sini</span>;
+  document.getElementById("keterangan").value = "";
 
-  const areaData = areaCache[areaNow] || JSON.parse(localStorage.getItem(`area${areaNow}`) || "{}");
- document.getElementById("qrResult").innerHTML = `<strong>✅ QR:</strong> ${decodedText}`;
-  document.getElementById("keterangan").value = areaData.ket || "";
-  if (areaData.foto) {
-    document.getElementById("previewFoto").innerHTML = `<img src="${areaData.foto}" style="width:100%; border-radius:10px;" />`;
-  }
+  const areaData = areaCache[areaNow] || JSON.parse(localStorage.getItem(area${areaNow}) || "{}");
+  if (areaData.qr) document.getElementById("qrResult").innerHTML = <strong>✅ QR:</strong> ${areaData.qr};
+  if (areaData.foto) document.getElementById("previewFoto").innerHTML = <img src="${areaData.foto}" style="width:100%; border-radius:10px;" />;
+  if (areaData.ket) document.getElementById("keterangan").value = areaData.ket;
 
   setTimeout(() => cekKelengkapanArea(), 300);
 }
 
-function startScan() {
-  document.getElementById("scannerContainer").style.display = "block";
-  scanQRCode();
-}
-
-function stopScan() {
-  stopCamera();
-  document.getElementById("scannerContainer").style.display = "none";
-}
-
 function cekKelengkapanArea() {
-  const areaData = areaCache[areaNow] || JSON.parse(localStorage.getItem(`area${areaNow}`) || "{}");
+  const areaData = areaCache[areaNow] || JSON.parse(localStorage.getItem(area${areaNow}) || "{}");
   const nextBtn = document.getElementById("nextBtn");
 
   if (areaData.qr && areaData.foto) {
@@ -128,17 +99,15 @@ function saveCurrentAreaData(newData, area = areaNow) {
   areaCache[area] = { ...(areaCache[area] || {}), ...newData };
 
   try {
-    const current = JSON.parse(localStorage.getItem(`area${area}`) || "{}");
+    const current = JSON.parse(localStorage.getItem(area${area}) || "{}");
     const updated = { ...current, ...newData };
-    localStorage.setItem(`area${area}`, JSON.stringify(updated));
+    localStorage.setItem(area${area}, JSON.stringify(updated));
   } catch (e) {
     console.warn("⛔ Gagal simpan ke localStorage:", e.message);
   }
 }
 
 function ambilFoto() {
-  stopCamera();
-
   const input = document.createElement("input");
   input.type = "file";
   input.accept = "image/*";
@@ -149,7 +118,7 @@ function ambilFoto() {
     const reader = new FileReader();
     reader.onload = (e) => {
       const base64 = e.target.result;
-      document.getElementById("previewFoto").innerHTML = `<img src="\${base64}" style="width:100%; border-radius:10px;" />`;
+      document.getElementById("previewFoto").innerHTML = <img src="${base64}" style="width:100%; border-radius:10px;" />;
       saveCurrentAreaData({ foto: base64 }, areaNow);
       setTimeout(() => cekKelengkapanArea(), 300);
     };
@@ -160,29 +129,35 @@ function ambilFoto() {
 
 let html5QrCode;
 function scanQRCode() {
-  stopCamera();
-
   const qrResult = document.getElementById("qrResult");
-  document.getElementById("reader").innerHTML = "";
 
   if (!html5QrCode) {
     html5QrCode = new Html5Qrcode("reader");
+  } else {
+    html5QrCode.stop().then(() => {
+      document.getElementById("reader").innerHTML = "";
+    }).catch(() => {});
   }
 
   html5QrCode.start(
     { facingMode: "environment" },
     { fps: 10, qrbox: 250 },
     (decodedText) => {
-      qrResult.innerHTML = `<strong>✅ QR:</strong> \${decodedText}`;
+      qrResult.innerHTML = <strong>✅ QR:</strong> ${decodedText};
       saveCurrentAreaData({ qr: decodedText }, areaNow);
       setTimeout(() => cekKelengkapanArea(), 300);
-      stopCamera();
+
+      html5QrCode.stop().then(() => {
+        document.getElementById("reader").innerHTML = "";
+      }).catch(() => {
+        document.getElementById("reader").innerHTML = "";
+      });
     },
     (err) => {
       console.warn("QR scan error:", err);
     }
   ).catch(err => {
-    qrResult.innerHTML = `❌ Tidak bisa akses kamera: \${err}`;
+    qrResult.innerHTML = ❌ Tidak bisa akses kamera: ${err};
   });
 }
 
@@ -191,9 +166,9 @@ function nextArea() {
   const ket = document.getElementById("keterangan").value;
   saveCurrentAreaData({ ket }, areaSaatIni);
 
-  const areaData = areaCache[areaSaatIni] || JSON.parse(localStorage.getItem(`area${areaSaatIni}`) || "{}");
+  const areaData = areaCache[areaSaatIni] || JSON.parse(localStorage.getItem(area${areaSaatIni}) || "{}");
   if (!areaData.qr || !areaData.foto) {
-    alert(`Mohon isi QR dan Foto untuk Area \${areaSaatIni} terlebih dahulu.`);
+    alert(Mohon isi QR dan Foto untuk Area ${areaSaatIni} terlebih dahulu.);
     return;
   }
 
@@ -231,10 +206,10 @@ async function kirimSemuaData() {
   const formBody = new URLSearchParams({ action: "patroli", nip, nama, perusahaan, tanggal, jam, lokasi });
 
   for (let i = 1; i <= maxArea; i++) {
-    const data = areaCache[i] || JSON.parse(localStorage.getItem(`area${i}`) || "{}");
-    formBody.append(`qr\${i}`, data.qr || "");
-    formBody.append(`foto\${i}`, data.foto || "");
-    formBody.append(`ket\${i}`, data.ket || "");
+    const data = areaCache[i] || JSON.parse(localStorage.getItem(area${i}) || "{}");
+    formBody.append(qr${i}, data.qr || "");
+    formBody.append(foto${i}, data.foto || "");
+    formBody.append(ket${i}, data.ket || "");
   }
 
   try {
@@ -250,7 +225,7 @@ async function kirimSemuaData() {
 
     if (text.toLowerCase().includes("berhasil")) {
       alert("✅ Data patroli berhasil dikirim!");
-      for (let i = 1; i <= maxArea; i++) localStorage.removeItem(`area\${i}`);
+      for (let i = 1; i <= maxArea; i++) localStorage.removeItem(area${i});
       window.removeEventListener("beforeunload", beforeUnloadHandler);
       setTimeout(() => (window.location.href = "index.html"), 2500);
     }
