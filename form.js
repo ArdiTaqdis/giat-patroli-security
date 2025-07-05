@@ -243,13 +243,15 @@ async function submitFinal() {
     const result = await res.json();
 
     if (result.status === "success") {
-      alert("✅ Data patroli berhasil dikirim!");
+      // ✅ Bersihkan semua cache dan redirect
       for (let i = 1; i <= 5; i++) {
         localStorage.removeItem(`qrArea${i}`);
         localStorage.removeItem(`fotoArea${i}`);
         localStorage.removeItem(`ketArea${i}`);
       }
-      window.location.href = "index.html";
+
+      window.removeEventListener("beforeunload", beforeUnloadHandler); // ⬅️ Ini penting!
+      window.location.href = "index.html"; // ⬅️ Redirect tanpa alert keluar
     } else {
       alert("❌ Gagal mengirim data.");
     }
