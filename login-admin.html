@@ -1,0 +1,101 @@
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login Admin</title>
+  <style>
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #f44336, #e57373);
+      margin: 0; padding: 0;
+      display: flex; align-items: center; justify-content: center;
+      height: 100vh;
+    }
+    .login-box {
+      background: white;
+      padding: 40px;
+      border-radius: 16px;
+      box-shadow: 0 8px 18px rgba(0,0,0,0.2);
+      text-align: center;
+      width: 90%;
+      max-width: 360px;
+      animation: fadeIn 1s ease;
+    }
+    .login-box img {
+      width: 80px;
+      margin-bottom: 12px;
+    }
+    .login-box h2 {
+      color: #f44336;
+      margin-bottom: 20px;
+    }
+    .login-box input {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 14px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 14px;
+    }
+    .login-box button {
+      background: #f44336;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    .login-box p {
+      margin-top: 12px;
+      color: #e53935;
+    }
+    .loading {
+      display: none;
+      margin-top: 10px;
+      font-size: 14px;
+      color: #666;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-box">
+    <img src="icon-192.png" alt="Logo" />
+    <h2>Login Admin</h2>
+    <input type="text" id="username" placeholder="Username" />
+    <input type="password" id="password" placeholder="Password" />
+    <button onclick="loginAdmin()">Login</button>
+    <div class="loading" id="loadingText">⏳ Memeriksa...</div>
+    <p id="status"></p>
+  </div>
+  <script>
+    function loginAdmin() {
+      document.getElementById("loadingText").style.display = "block";
+      const user = document.getElementById('username').value.trim();
+      const pass = document.getElementById('password').value.trim();
+
+      const credentials = {
+        "admin": "12345",
+        "supervisor": "patroli2025"
+      };
+
+      setTimeout(() => {
+        if (credentials[user] && credentials[user] === pass) {
+          localStorage.setItem("adminLogin", "true");
+          window.location.href = "admin.html";
+        } else {
+          document.getElementById("status").innerText = "❌ Username atau Password salah.";
+          document.getElementById("loadingText").style.display = "none";
+        }
+      }, 1000);
+    }
+  </script>
+</body>
+</html>

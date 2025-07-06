@@ -22,7 +22,7 @@
 
     h2 {
       text-align: center;
-      background-color: #1976d2;
+      background-color: #df7373;
       color: white;
       padding: 16px;
       border-radius: 12px;
@@ -53,7 +53,7 @@
     }
 
     table.dataTable th {
-      background: #0d47a1;
+      background: #9b1e08;
       color: white;
       text-align: center;
     }
@@ -163,6 +163,15 @@
     }
   </style>
 
+  <script>
+    if (localStorage.getItem("adminLogin") !== "true") {
+      window.location.href = "login-admin.html";
+    }
+  </script>
+
+  
+
+
   <!-- Scripts -->
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
@@ -178,6 +187,7 @@
 </head>
 <body>
   <h2>Monitoring Giat Patroli Security</h2>
+  <button onclick="logoutAdmin()" style="float: right; background: #f44336; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer;">🚪 Logout</button>
   <div id="loadingOverlay">⏳ Memuat data...</div>
 
   <div class="filter-bar">
@@ -247,5 +257,12 @@
 
   <!-- JavaScript Logic -->
   <script src="admin.js"></script>
+  <script>
+  function logoutAdmin() {
+    localStorage.removeItem("adminLogin");
+    window.location.href = "login-admin.html";
+  }
+</script>
+
 </body>
 </html>
