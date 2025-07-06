@@ -1,7 +1,7 @@
 {
   "name": "Giat Patroli",
   "short_name": "Patroli",
-  "start_url": "index.html",
+  "start_url": "login.html",
   "scope": "./",
   "display": "standalone",
   "background_color": "#ffffff",

@@ -1,120 +1,79 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#2196f3" />
-  <link rel="icon" href="icon-192.png" type="image/png" />
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Login - Giat Patroli Security</title>
+  <title>Giat Patroli</title>
+
+  <!-- Manifest & Icon -->
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" href="icon-192.png" type="image/png" />
+  <meta name="theme-color" content="#2196f3" />
+
   <style>
-    * {
-      box-sizing: border-box;
-    }
-
     body {
-      font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(135deg, #ff6262, #f03d3d);
-      margin: 0;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-    }
-
-    .login-box {
-      background: #ffffff;
-      padding: 40px 30px;
-      border-radius: 20px;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+      font-family: Arial, sans-serif;
       text-align: center;
-      width: 100%;
-      max-width: 360px;
+      padding: 40px;
+      background: #e3f2fd;
     }
-
-    img {
-      width: 80px;
-      margin-bottom: 15px;
-    }
-
-    h1 {
-      font-size: 22px;
-      margin-bottom: 30px;
-      color: #d61a1a;
-    }
-
-    input, button {
-      width: 100%;
-      padding: 12px;
-      margin-bottom: 20px;
-      border-radius: 10px;
-      border: 1px solid #ccc;
-      font-size: 16px;
-    }
-
-    input:focus {
-      outline: none;
-      border-color: #2196f3;
-    }
-
+    h1 { color: #2196f3; }
     button {
-      background: #e62020;
+      padding: 10px 20px;
+      background: #2196f3;
       color: white;
-      font-weight: bold;
       border: none;
-      transition: background 0.3s;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
     }
-
-    button:hover {
-      background: #881506;
-    }
-
-    .footer {
-      margin-top: 15px;
-      font-size: 12px;
-      color: #666;
+    button:disabled {
+      background: #ccc;
     }
   </style>
 </head>
 <body>
+  <h1>🚓 Giat Patroli Security</h1>
+  <p>Selamat datang! Anda bisa menginstal aplikasi ini di layar utama.</p>
+  <button id="installBtn" hidden>⬇️ Install Aplikasi</button>
 
-  <div class="login-box">
-    <img src="https://drive.google.com/thumbnail?id=1LlCPpS__DX-gbvLzbjIBtfRLcFZaaRZQ&sz=s4000" alt="Logo" />
-    <h1>GIAT PATROLI SECURITY</h1>
-
-    <form onsubmit="handleLogin(event)">
-      <input type="text" id="nipInput" placeholder="Masukkan NIP Anda" required />
-      <button type="submit">🔐 Login</button>
-    </form>
-
-    <div class="footer">© 2025 Giat Security Patrol</div>
-  </div>
+  <br><br>
+  <a href="login.html">
+    <button>➡️ Masuk ke Aplikasi</button>
+  </a>
 
   <script>
-    const scriptURL = "https://script.google.com/macros/s/AKfycbxy9J8w86sn_5mctVRQNpGX7BK-XRhXMoid7PgsYDdOPOx1z3QVn2iyfc5oal4sOS9dyA/exec"
-    async function handleLogin(e) {
-      e.preventDefault();
-      const nip = document.getElementById("nipInput").value.trim();
-      if (!nip) return;
+    let deferredPrompt;
+    const installBtn = document.getElementById("installBtn");
 
-      try {
-        const res = await fetch(`${scriptURL}?nip=${nip}`);
-        const data = await res.json();
+    window.addEventListener('beforeinstallprompt', (e) => {
+      // Simpan event dan tampilkan tombol
+      deferredPrompt = e;
+      installBtn.hidden = false;
 
-        if (data.status === "success") {
-          localStorage.setItem("nipLogin", data.nip);
-          localStorage.setItem("nama", data.nama);
-          localStorage.setItem("perusahaan", data.perusahaan);
-          localStorage.setItem("fotoUser", data.foto || "");
-          window.location.href = "form.html";
-        } else {
-          alert("❌ NIP tidak ditemukan.");
-        }
-      } catch (err) {
-        alert("❌ Gagal menghubungi server: " + err.message);
-      }
-    }
+      installBtn.addEventListener('click', () => {
+        installBtn.disabled = true;
+        deferredPrompt.prompt();
+
+        deferredPrompt.userChoice.then(choice => {
+          if (choice.outcome === 'accepted') {
+            console.log('✅ Pengguna menginstal aplikasi');
+          } else {
+            console.log('❌ Pengguna membatalkan instalasi');
+          }
+          deferredPrompt = null;
+        });
+      });
+    });
   </script>
 
+  <!-- Service Worker -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('service-worker.js')
+        .then(reg => console.log('✅ SW terdaftar:', reg.scope))
+        .catch(err => console.error('❌ SW gagal:', err));
+    }
+  </script>
 </body>
 </html>

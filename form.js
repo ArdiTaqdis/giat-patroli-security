@@ -20,7 +20,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (!nip || !nama || !perusahaan) {
     alert("Silakan login terlebih dahulu.");
-    window.location.href = "index.html";
+    window.location.href = "login.html";
     return;
   }
 
@@ -240,7 +240,7 @@ async function submitFinal() {
       document.getElementById("redirectOverlay").classList.add("show");
 
       setTimeout(() => {
-        window.location.href = "index.html";
+        window.location.href = "login.html";
       }, 1500);
     } else {
       alert("❌ Gagal mengirim data.");
