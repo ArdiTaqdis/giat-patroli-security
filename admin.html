@@ -190,6 +190,11 @@
   <button onclick="logoutAdmin()" style="float: right; background: #f44336; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer;">🚪 Logout</button>
   <div id="loadingOverlay">⏳ Memuat data...</div>
 
+ <button onclick="openUserAdmin()" style="margin-left: 8px; background: #468809; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer;">
+👤 + Scurity
+</button>
+
+
   <div class="filter-bar">
     <label>Timestamp:</label>
     <input type="text" id="filterTimestamp" placeholder="Pilih rentang tanggal & jam">
@@ -261,8 +266,16 @@
   function logoutAdmin() {
     localStorage.removeItem("adminLogin");
     window.location.href = "login-admin.html";
+  } 
+  
+  
+</script>
+<script>
+  function openUserAdmin() {
+    window.open("admin-user.html", "_blank");
   }
 </script>
+
 
 </body>
 </html>
