@@ -1,120 +1,128 @@
 <!DOCTYPE html>
 <html lang="id">
-<head>
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#2196f3" />
-  <link rel="icon" href="icon-192.png" type="image/png" />
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Login - Giat Patroli Security</title>
-  <style>
-    * {
-      box-sizing: border-box;
-    }
-
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(135deg, #ff6262, #f03d3d);
-      margin: 0;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-    }
-
-    .login-box {
-      background: #ffffff;
-      padding: 40px 30px;
-      border-radius: 20px;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-      text-align: center;
-      width: 100%;
-      max-width: 360px;
-    }
-
-    img {
-      width: 80px;
-      margin-bottom: 15px;
-    }
-
-    h1 {
-      font-size: 22px;
-      margin-bottom: 30px;
-      color: #d61a1a;
-    }
-
-    input, button {
-      width: 100%;
-      padding: 12px;
-      margin-bottom: 20px;
-      border-radius: 10px;
-      border: 1px solid #ccc;
-      font-size: 16px;
-    }
-
-    input:focus {
-      outline: none;
-      border-color: #2196f3;
-    }
-
-    button {
-      background: #e62020;
-      color: white;
-      font-weight: bold;
-      border: none;
-      transition: background 0.3s;
-    }
-
-    button:hover {
-      background: #881506;
-    }
-
-    .footer {
-      margin-top: 15px;
-      font-size: 12px;
-      color: #666;
-    }
-  </style>
-</head>
-<body>
-
-  <div class="login-box">
-    <img src="https://drive.google.com/thumbnail?id=1LlCPpS__DX-gbvLzbjIBtfRLcFZaaRZQ&sz=s4000" alt="Logo" />
-    <h1>GIAT PATROLI SECURITY</h1>
-
-    <form onsubmit="handleLogin(event)">
-      <input type="text" id="nipInput" placeholder="Masukkan NIP Anda" required />
-      <button type="submit">🔐 Login</button>
-    </form>
-
-    <div class="footer">© 2025 Giat Security Patrol</div>
-  </div>
-
-  <script>
-    const scriptURL = "https://script.google.com/macros/s/AKfycbxy9J8w86sn_5mctVRQNpGX7BK-XRhXMoid7PgsYDdOPOx1z3QVn2iyfc5oal4sOS9dyA/exec"
-    async function handleLogin(e) {
-      e.preventDefault();
-      const nip = document.getElementById("nipInput").value.trim();
-      if (!nip) return;
-
-      try {
-        const res = await fetch(`${scriptURL}?nip=${nip}`);
-        const data = await res.json();
-
-        if (data.status === "success") {
-          localStorage.setItem("nipLogin", data.nip);
-          localStorage.setItem("nama", data.nama);
-          localStorage.setItem("perusahaan", data.perusahaan);
-          localStorage.setItem("fotoUser", data.foto || "");
-          window.location.href = "form.html";
-        } else {
-          alert("❌ NIP tidak ditemukan.");
-        }
-      } catch (err) {
-        alert("❌ Gagal menghubungi server: " + err.message);
+  <head>
+    <link rel="manifest" href="manifest.json" />
+    <meta name="theme-color" content="#2196f3" />
+    <link rel="icon" href="icon-192.png" type="image/png" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login - Giat Patroli Security</title>
+    <style>
+      * {
+        box-sizing: border-box;
       }
-    }
-  </script>
 
-</body>
+      body {
+        font-family: "Segoe UI", sans-serif;
+        background: linear-gradient(135deg, #ff6262, #f03d3d);
+        margin: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+      }
+
+      .login-box {
+        background: #ffffff;
+        padding: 40px 30px;
+        border-radius: 20px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        text-align: center;
+        width: 100%;
+        max-width: 360px;
+      }
+
+      img {
+        width: 80px;
+        margin-bottom: 15px;
+      }
+
+      h1 {
+        font-size: 22px;
+        margin-bottom: 30px;
+        color: #d61a1a;
+      }
+
+      input,
+      button {
+        width: 100%;
+        padding: 12px;
+        margin-bottom: 20px;
+        border-radius: 10px;
+        border: 1px solid #ccc;
+        font-size: 16px;
+      }
+
+      input:focus {
+        outline: none;
+        border-color: #2196f3;
+      }
+
+      button {
+        background: #e62020;
+        color: white;
+        font-weight: bold;
+        border: none;
+        transition: background 0.3s;
+      }
+
+      button:hover {
+        background: #881506;
+      }
+
+      .footer {
+        margin-top: 15px;
+        font-size: 12px;
+        color: #666;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="login-box">
+      <img
+        src="https://drive.google.com/thumbnail?id=1LlCPpS__DX-gbvLzbjIBtfRLcFZaaRZQ&sz=s4000"
+        alt="Logo"
+      />
+      <h1>GIAT PATROLI SECURITY</h1>
+
+      <form onsubmit="handleLogin(event)">
+        <input
+          type="text"
+          id="nipInput"
+          placeholder="Masukkan NIP Anda"
+          required
+        />
+        <button type="submit">🔐 Login</button>
+      </form>
+
+      <div class="footer">© 2025 Giat Security Patrol</div>
+    </div>
+
+    <script>
+      const scriptURL =
+        "https://script.google.com/macros/s/AKfycbxy9J8w86sn_5mctVRQNpGX7BK-XRhXMoid7PgsYDdOPOx1z3QVn2iyfc5oal4sOS9dyA/exec";
+      async function handleLogin(e) {
+        e.preventDefault();
+        const nip = document.getElementById("nipInput").value.trim();
+        if (!nip) return;
+
+        try {
+          const res = await fetch(`${scriptURL}?nip=${nip}`);
+          const data = await res.json();
+
+          if (data.status === "success") {
+            localStorage.setItem("nipLogin", data.nip);
+            localStorage.setItem("nama", data.nama);
+            localStorage.setItem("perusahaan", data.perusahaan);
+            localStorage.setItem("fotoUser", data.foto || "");
+            window.location.href = "dashboard/dashboard.html";
+          } else {
+            alert("❌ NIP tidak ditemukan.");
+          }
+        } catch (err) {
+          alert("❌ Gagal menghubungi server: " + err.message);
+        }
+      }
+    </script>
+  </body>
 </html>

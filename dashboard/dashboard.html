@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard Giat Patroli</title>
+    <link rel="stylesheet" href="dashboard.css" />
+  </head>
+  <body>
+    <input type="hidden" id="nipHidden" />
+
+    <!-- ===== HEADER ===== -->
+    <header class="header">
+      <div class="profile">
+        <img
+          id="fotoUser"
+          src="https://cdn-icons-png.flaticon.com/512/149/149071.png"
+          alt="Foto User"
+          class="foto-user"
+        />
+        <h1 class="app-title">GIAT PATROLI</h1>
+        <p id="infoUser">
+          <span id="namaUser">Nama Security</span> |
+          <span id="perusahaan">Perusahaan</span>
+        </p>
+
+        <span id="statusOnline" class="status offline">Offline</span>
+        <div id="dateTime" class="datetime">--/--/---- --:--:--</div>
+      </div>
+
+      <!-- Lengkungan Bawah -->
+      <svg
+        class="wave"
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 1440 120"
+        preserveAspectRatio="none"
+      >
+        <path
+          fill="#f7f7f7"
+          d="M0,64 C360,120 1080,0 1440,80 L1440,0 L0,0 Z"
+        ></path>
+      </svg>
+    </header>
+
+    <!-- ===== MENU ===== -->
+    <h2 class="menu-title">--Panel Patroli--</h2>
+    <main class="menu-container">
+      <a href="absen.html" class="menu-card">
+        <div class="icon">🕵️‍♂️</div>
+        <p>Absen Patroli</p>
+      </a>
+      <a href="pending.html" class="menu-card">
+        <div class="icon">⏳</div>
+        <p>Absen Pending</p>
+      </a>
+      <a href="riwayat.html" class="menu-card">
+        <div class="icon">📅</div>
+        <p>Riwayat Absen</p>
+      </a>
+      <a href="panduan.html" class="menu-card">
+        <div class="icon">📚</div>
+        <p>Cara Penggunaan</p>
+      </a>
+      <a href="#" class="menu-card" onclick="showNotifikasi()">
+        <div class="icon">🔔</div>
+        <p>Notifikasi</p>
+      </a>
+      <a href="pengaturan.html" class="menu-card">
+        <div class="icon">⚙️</div>
+        <p>Pengaturan</p>
+      </a>
+    </main>
+
+    <footer class="footer">
+      <p>&copy; 2025 GIAT PATROLI • <span id="tahunSekarang"></span></p>
+    </footer>
+
+    <script>
+      document.getElementById("tahunSekarang").textContent =
+        new Date().getFullYear();
+    </script>
+
+    <script>
+      function updateDateTime() {
+        const now = new Date();
+        document.getElementById("dateTime").textContent =
+          now.toLocaleDateString("id-ID", {
+            day: "2-digit",
+            month: "long",
+            year: "numeric",
+          }) +
+          " , " +
+          now.toLocaleTimeString("id-ID", {
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit",
+          });
+      }
+      setInterval(updateDateTime, 1000);
+      updateDateTime();
+    </script>
+    <script src="dashboard.js"></script>
+  </body>
+</html>
