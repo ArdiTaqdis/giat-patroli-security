@@ -1,22 +1,18 @@
-const scriptURL =
-  "https://script.google.com/macros/s/AKfycbxy9J8w86sn_5mctVRQNpGX7BK-XRhXMoid7PgsYDdOPOx1z3QVn2iyfc5oal4sOS9dyA/exec";
-let areaNow = 1;
 const maxArea = 5;
+let areaNow = 1;
 const areaFotoCache = {};
-const areaKetCache = {};
-
 const beforeUnloadHandler = (e) => {
   e.preventDefault();
   e.returnValue = "";
 };
 
+let nip, nama, perusahaan, fotoUser;
+
 document.addEventListener("DOMContentLoaded", () => {
   window.addEventListener("beforeunload", beforeUnloadHandler);
 
-  // --- Ambil data user ---
-  let nip, nama, perusahaan, fotoUser;
+  // ==== Ambil data user ====
   const userData = localStorage.getItem("userData");
-
   if (userData) {
     const u = JSON.parse(userData);
     nip = u.nip;
@@ -24,7 +20,6 @@ document.addEventListener("DOMContentLoaded", () => {
     perusahaan = u.perusahaan;
     fotoUser = u.foto;
   } else {
-    // fallback ke format lama
     nip = localStorage.getItem("nipLogin");
     nama = localStorage.getItem("nama");
     perusahaan = localStorage.getItem("perusahaan");
@@ -33,20 +28,43 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (!nip || !nama || !perusahaan) {
     alert("Silakan login terlebih dahulu.");
-    window.location.href = "login.html";
+    window.location.href = "../login.html";
     return;
   }
 
-  // --- Tampilkan identitas ---
+  // ==== Tampilkan identitas ====
   document.getElementById("nip").innerText = nip;
   document.getElementById("nama").innerText = nama;
   document.getElementById("perusahaan").innerText = perusahaan;
   if (fotoUser) document.getElementById("fotoUser").src = fotoUser;
 
-  // --- waktu, jam, lokasi tetap ---
-  const now = new Date();
+  // ==== Tentukan area yang sedang dikerjakan ====
+  const progress = JSON.parse(localStorage.getItem("patroliProgress") || "{}");
+  const now = Date.now();
+  if (!progress.currentArea) {
+    localStorage.setItem(
+      "patroliProgress",
+      JSON.stringify({
+        currentArea: 1,
+        startTime: now,
+      })
+    );
+    areaNow = 1;
+  } else {
+    // reset otomatis setelah 12 jam
+    if (now - progress.startTime > 12 * 60 * 60 * 1000) {
+      resetPatroli();
+      areaNow = 1;
+    } else {
+      areaNow = progress.currentArea;
+    }
+  }
+  updateAreaLabel();
+
+  // ==== Waktu dan Lokasi ====
+  const today = new Date();
   document.getElementById("tanggal").innerText =
-    now.toLocaleDateString("id-ID");
+    today.toLocaleDateString("id-ID");
   updateJam();
   setInterval(updateJam, 1000);
 
@@ -58,13 +76,10 @@ document.addEventListener("DOMContentLoaded", () => {
         document.getElementById("lokasi").innerText = `📍 ${lat}, ${lon}`;
         getAlamatFromCoords(lat, lon);
       },
-      () => {
-        document.getElementById("lokasi").innerText = "❌ Gagal ambil lokasi";
-      }
+      () =>
+        (document.getElementById("lokasi").innerText = "❌ Gagal ambil lokasi")
     );
   }
-
-  updateNavButtons();
 });
 
 function updateJam() {
@@ -75,9 +90,7 @@ function updateJam() {
 
 function getAlamatFromCoords(lat, lon) {
   const url = `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`;
-  fetch(url, {
-    headers: { "User-Agent": "patroli-app/1.0" },
-  })
+  fetch(url, { headers: { "User-Agent": "patroli-app/1.0" } })
     .then((res) => res.json())
     .then((data) => {
       const alamat = data.display_name || `${lat}, ${lon}`;
@@ -102,17 +115,13 @@ async function ambilFoto() {
     if (!file) return;
     const reader = new FileReader();
     reader.onload = async () => {
-      // 1. Kompres gambar seperti biasa
       const compressed = await resizeImage(reader.result);
-
-      // 2. Tambahkan teks watermark
       const withText = await addWatermark(
         compressed,
-        `${nama}`, // Nama Karyawan
-        new Date().toLocaleString("id-ID") // Tanggal & Jam
+        nama,
+        perusahaan,
+        new Date().toLocaleString("id-ID")
       );
-
-      // 3. Tampilkan preview dan simpan
       document.getElementById("fotoPreviewMini").src = withText;
       document.getElementById("fotoPreviewMini").style.display = "block";
       areaFotoCache[`area${areaNow}`] = withText;
@@ -121,42 +130,39 @@ async function ambilFoto() {
   };
 }
 
-function addWatermark(base64Str, namaPetugas, waktu) {
+function addWatermark(base64Str, namaPetugas, perusahaanPetugas, waktu) {
   return new Promise((resolve) => {
     const img = new Image();
     img.src = base64Str;
     img.onload = () => {
       const canvas = document.createElement("canvas");
       const ctx = canvas.getContext("2d");
-
-      // Ukuran canvas sama dengan gambar
       canvas.width = img.width;
       canvas.height = img.height;
-
-      // Gambar foto asli
       ctx.drawImage(img, 0, 0);
 
-      // Setting teks
       ctx.font = `${Math.floor(img.width * 0.035)}px Arial`;
       ctx.fillStyle = "white";
       ctx.strokeStyle = "black";
       ctx.lineWidth = 3;
       ctx.textBaseline = "bottom";
-
       const margin = 20;
 
-      // Tulis Nama
-      const namaText = `Nama: ${namaPetugas}`;
-      const waktuText = `Tanggal: ${waktu}`;
+      ctx.strokeText(`Nama: ${namaPetugas}`, margin, img.height - 3 * margin);
+      ctx.fillText(`Nama: ${namaPetugas}`, margin, img.height - 3 * margin);
+      ctx.strokeText(
+        `Perusahaan: ${perusahaanPetugas}`,
+        margin,
+        img.height - 2 * margin
+      );
+      ctx.fillText(
+        `Perusahaan: ${perusahaanPetugas}`,
+        margin,
+        img.height - 2 * margin
+      );
+      ctx.strokeText(`Tanggal & Waktu: ${waktu}`, margin, img.height - margin);
+      ctx.fillText(`Tanggal & Waktu: ${waktu}`, margin, img.height - margin);
 
-      // Bayangan teks agar terbaca di background terang
-      ctx.strokeText(namaText, margin, img.height - 2 * margin);
-      ctx.fillText(namaText, margin, img.height - 2 * margin);
-
-      ctx.strokeText(waktuText, margin, img.height - margin);
-      ctx.fillText(waktuText, margin, img.height - margin);
-
-      // Hasil base64
       resolve(canvas.toDataURL("image/jpeg", 0.8));
     };
   });
@@ -168,143 +174,88 @@ function resizeImage(base64Str, maxWidth = 400, quality = 0.7) {
     img.src = base64Str;
     img.onload = () => {
       const canvas = document.createElement("canvas");
-      const scaleSize = maxWidth / img.width;
+      const scale = maxWidth / img.width;
       canvas.width = maxWidth;
-      canvas.height = img.height * scaleSize;
+      canvas.height = img.height * scale;
       const ctx = canvas.getContext("2d");
       ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-      const newBase64 = canvas.toDataURL("image/jpeg", quality);
-      resolve(newBase64);
+      resolve(canvas.toDataURL("image/jpeg", quality));
     };
   });
 }
 
-function nextArea() {
+function updateAreaLabel() {
+  document.getElementById("areaNow").innerText = areaNow;
+  document.getElementById("areaTitle").innerText = `Area ${areaNow}`;
+}
+
+// ==== Simpan Per Area ====
+function simpanArea() {
   const foto = areaFotoCache[`area${areaNow}`];
   const ket = document.getElementById("keterangan").value.trim();
   if (!foto) {
-    alert("Ambil Foto sebelum lanjut.");
+    alert("Ambil foto sebelum menyimpan.");
     return;
-  }
-
-  setTimeout(() => {
-    localStorage.setItem(`fotoArea${areaNow}`, foto);
-    localStorage.setItem(`ketArea${areaNow}`, ket);
-    localStorage.setItem(`qrArea${areaNow}`, qr);
-
-    if (areaNow < maxArea) {
-      areaNow++;
-      document.getElementById("areaNow").innerText = areaNow;
-      document.getElementById("areaTitle").innerText = `Area ${areaNow}`;
-      resetFormForNewArea();
-      updateNavButtons();
-    } else {
-      openModal();
-    }
-
-    document.getElementById("loadingOverlay").style.display = "none";
-  }, 800);
-}
-
-function updateNavButtons() {
-  const nextBtn = document.getElementById("nextBtn");
-
-  nextBtn.innerText =
-    areaNow === 5 ? "🚀 Selesai dan Kirim" : "➡️ Area Berikutnya";
-
-  nextBtn.style.backgroundColor = areaNow === 5 ? "#d32f2f" : "#2d800d";
-}
-
-function resetFormForNewArea() {
-  document.getElementById("fotoPreviewMini").src = "";
-  document.getElementById("fotoPreviewMini").style.display = "none";
-  document.getElementById("qrResult").innerText = "";
-  document.getElementById("keterangan").value = "";
-}
-
-function openModal() {
-  document.getElementById("modalKirim").style.display = "flex";
-}
-function closeModal() {
-  document.getElementById("modalKirim").style.display = "none";
-}
-
-async function submitFinal() {
-  if (areaNow < 5) {
-    alert("⚠️ Lengkapi semua area terlebih dahulu.");
-    return;
-  }
-
-  for (let i = 1; i <= 5; i++) {
-    if (
-      !localStorage.getItem(`fotoArea${i}`) ||
-      !localStorage.getItem(`qrArea${i}`)
-    ) {
-      alert(`Data Area ${i} belum lengkap.`);
-      return;
-    }
   }
 
   document.getElementById("loadingOverlay").style.display = "flex";
 
-  const nip = localStorage.getItem("nipLogin");
-  const nama = localStorage.getItem("nama");
-  const perusahaan = localStorage.getItem("perusahaan");
   const lokasi = document.getElementById("lokasi").innerText;
   const tanggal = document.getElementById("tanggal").innerText;
   const jam = document.getElementById("jam").innerText;
-  const timestamp = new Date().toISOString();
 
-  const formData = {
-    action: "patroli",
-    nip,
-    nama,
-    perusahaan,
-    tanggal,
-    jam,
-    lokasi,
-    timestamp,
-    status: "Proses",
-  };
+  // simpan data area ke localStorage
+  localStorage.setItem(
+    `patroliArea${areaNow}`,
+    JSON.stringify({
+      nip,
+      nama,
+      perusahaan,
+      tanggal,
+      jam,
+      lokasi,
+      foto,
+      keterangan: ket,
+      timestamp: new Date().toISOString(),
+    })
+  );
 
-  for (let i = 1; i <= 5; i++) {
-    formData[`foto${i}`] = localStorage.getItem(`fotoArea${i}`);
-    formData[`ket${i}`] = localStorage.getItem(`ketArea${i}`) || "";
+  // update progress
+  const nextArea = areaNow + 1;
+  const progress = JSON.parse(localStorage.getItem("patroliProgress") || "{}");
+  if (nextArea <= maxArea) {
+    localStorage.setItem(
+      "patroliProgress",
+      JSON.stringify({
+        currentArea: nextArea,
+        startTime: progress.startTime || Date.now(),
+      })
+    );
+  } else {
+    // semua area selesai
+    resetPatroli(); // reset progress setelah 5 area
+    alert(
+      "🎉 Anda sudah menyelesaikan patroli 5 area. " +
+        "Silakan kirim data ke server melalui menu Absen Pending."
+    );
   }
 
-  try {
-    const res = await fetch(scriptURL, {
-      method: "POST",
-      body: new URLSearchParams(formData),
-    });
+  // feedback jika belum 5 area
+  if (nextArea <= maxArea) {
+    alert(`✅ Anda sudah melakukan patroli di Area ${areaNow}.`);
+  }
 
-    const result = await res.json();
-
-    if (result.status === "success") {
-      for (let i = 1; i <= 5; i++) {
-        localStorage.removeItem(`fotoArea${i}`);
-        localStorage.removeItem(`ketArea${i}`);
-      }
-
-      localStorage.removeItem("nipLogin");
-      localStorage.removeItem("nama");
-      localStorage.removeItem("perusahaan");
-      localStorage.removeItem("fotoUser");
-
-      window.removeEventListener("beforeunload", beforeUnloadHandler);
-      document.getElementById("redirectOverlay").classList.add("show");
-
-      setTimeout(() => {
-        window.location.href = "login.html";
-      }, 1500);
-    } else {
-      alert("❌ Gagal mengirim data.");
-    }
-  } catch (error) {
-    console.error("Error:", error);
-    alert("❌ Terjadi kesalahan saat kirim.");
-  } finally {
-    closeModal();
+  setTimeout(() => {
     document.getElementById("loadingOverlay").style.display = "none";
+    // kembali ke dashboard
+    window.location.href = "../dashboard/dashboard.html";
+  }, 800);
+}
+
+// ==== Reset Progress ====
+function resetPatroli() {
+  for (let i = 1; i <= maxArea; i++) {
+    localStorage.removeItem(`patroliArea${i}`);
   }
+  localStorage.removeItem("patroliProgress");
 }

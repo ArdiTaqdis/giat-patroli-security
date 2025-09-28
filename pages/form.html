@@ -39,7 +39,7 @@
         </div>
       </div>
 
-      <!-- Step Area -->
+      <!-- Informasi Area -->
       <div
         id="progressInfo"
         style="text-align: center; font-weight: bold; margin-bottom: 10px"
@@ -50,9 +50,7 @@
       <div id="stepContainer">
         <h2 id="areaTitle">Area 1</h2>
 
-        <button type="buttonqrcm" onclick="ambilFoto()">
-          📸 Ambil Foto Area
-        </button>
+        <button type="button" onclick="ambilFoto()">📸 Ambil Foto Area</button>
         <div class="preview-mini">
           <img
             id="fotoPreviewMini"
@@ -68,9 +66,10 @@
           rows="3"
         ></textarea>
 
+        <!-- Tombol Simpan Per Area -->
         <div style="display: flex; gap: 10px; margin-top: 15px">
-          <button type="button" id="nextBtn" onclick="nextArea()">
-            ➡️ Area Berikutnya
+          <button type="button" id="simpanBtn" onclick="simpanArea()">
+            💾 Simpan Area
           </button>
         </div>
       </div>
@@ -81,7 +80,13 @@
     <!-- Loading Spinner -->
     <div id="loadingOverlay">
       <div class="spinner"></div>
-      <div style="margin-top: 10px">⏳ Loading data...</div>
+      <div style="margin-top: 10px">⏳ Menyimpan data...</div>
+    </div>
+
+    <!-- Redirect Overlay -->
+    <div id="redirectOverlay">
+      <div class="spinner"></div>
+      <p style="color: white; margin-top: 10px">Mengalihkan ke dashboard...</p>
     </div>
 
     <script src="../js/form.js"></script>
@@ -112,11 +117,6 @@
         padding: 10px;
         border-radius: 8px;
       }
-      .foto-preview img {
-        width: 100%;
-        border-radius: 8px;
-        margin-top: 10px;
-      }
       textarea {
         width: 100%;
         padding: 10px;
@@ -125,19 +125,6 @@
         border: 1px solid #ccc;
         resize: none;
       }
-
-      .buttonqrcm {
-        display: block;
-        width: 100%;
-        margin-top: 15px;
-        padding: 10px;
-        background-color: #b9301e;
-        color: white;
-        border: none;
-        border-radius: 8px;
-        cursor: pointer;
-      }
-
       button {
         display: block;
         width: 100%;
@@ -152,7 +139,8 @@
       button:hover {
         background-color: #4acc16;
       }
-      #loadingOverlay {
+      #loadingOverlay,
+      #redirectOverlay {
         position: fixed;
         top: 0;
         left: 0;
@@ -165,6 +153,10 @@
         justify-content: center;
         flex-direction: column;
       }
+      #redirectOverlay {
+        background: rgba(0, 0, 0, 0.7);
+        color: white;
+      }
       .spinner {
         width: 50px;
         height: 50px;
@@ -173,28 +165,6 @@
         border-radius: 50%;
         animation: spin 1s linear infinite;
       }
-
-      #redirectOverlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(244, 67, 54, 0.95); /* merah tua transparan */
-        display: none;
-        align-items: center;
-        justify-content: center;
-        flex-direction: column;
-        z-index: 99999;
-        opacity: 0;
-        transition: opacity 0.6s ease;
-      }
-
-      #redirectOverlay.show {
-        display: flex;
-        opacity: 1;
-      }
-
       @keyframes spin {
         0% {
           transform: rotate(0deg);
@@ -204,58 +174,5 @@
         }
       }
     </style>
-
-    <!-- Modal Konfirmasi Kirim -->
-    <div id="modalKirim" class="modal">
-      <div class="modal-content">
-        <h3>Konfirmasi Kirim Patroli</h3>
-        <p>
-          Anda sudah selesai isi Patroli. Apakah Anda ingin mengirim data
-          patroli sekarang?
-        </p>
-        <div
-          style="
-            margin-top: 15px;
-            display: flex;
-            gap: 10px;
-            justify-content: flex-end;
-          "
-        >
-          <button onclick="closeModal()">❌ Tidak</button>
-          <button onclick="submitFinal()">✅ Ya, Kirim</button>
-        </div>
-      </div>
-    </div>
-
-    <style>
-      .modal {
-        display: none;
-        position: fixed;
-        z-index: 9999;
-        left: 0;
-        top: 0;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(0, 0, 0, 0.5);
-        align-items: center;
-        justify-content: center;
-      }
-      .modal-content {
-        background-color: white;
-        padding: 20px;
-        border-radius: 12px;
-        max-width: 400px;
-        text-align: center;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-      }
-    </style>
-
-    <!-- Redirect Overlay -->
-    <div id="redirectOverlay">
-      <div class="spinner"></div>
-      <p style="color: white; margin-top: 10px">
-        Mengalihkan ke halaman utama...
-      </p>
-    </div>
   </body>
 </html>
