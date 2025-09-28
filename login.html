@@ -11,7 +11,6 @@
       * {
         box-sizing: border-box;
       }
-
       body {
         font-family: "Segoe UI", sans-serif;
         background: linear-gradient(135deg, #ff6262, #f03d3d);
@@ -21,7 +20,6 @@
         align-items: center;
         height: 100vh;
       }
-
       .login-box {
         background: #ffffff;
         padding: 40px 30px;
@@ -31,18 +29,15 @@
         width: 100%;
         max-width: 360px;
       }
-
       img {
         width: 80px;
         margin-bottom: 15px;
       }
-
       h1 {
         font-size: 22px;
         margin-bottom: 30px;
         color: #d61a1a;
       }
-
       input,
       button {
         width: 100%;
@@ -52,12 +47,10 @@
         border: 1px solid #ccc;
         font-size: 16px;
       }
-
       input:focus {
         outline: none;
         border-color: #2196f3;
       }
-
       button {
         background: #e62020;
         color: white;
@@ -65,11 +58,9 @@
         border: none;
         transition: background 0.3s;
       }
-
       button:hover {
         background: #881506;
       }
-
       .footer {
         margin-top: 15px;
         font-size: 12px;
@@ -101,6 +92,7 @@
     <script>
       const scriptURL =
         "https://script.google.com/macros/s/AKfycbxy9J8w86sn_5mctVRQNpGX7BK-XRhXMoid7PgsYDdOPOx1z3QVn2iyfc5oal4sOS9dyA/exec";
+
       async function handleLogin(e) {
         e.preventDefault();
         const nip = document.getElementById("nipInput").value.trim();
@@ -111,11 +103,18 @@
           const data = await res.json();
 
           if (data.status === "success") {
-            localStorage.setItem("nipLogin", data.nip);
-            localStorage.setItem("nama", data.nama);
-            localStorage.setItem("perusahaan", data.perusahaan);
-            localStorage.setItem("fotoUser", data.foto || "");
-            window.location.href = "form.html";
+            // simpan semua data yang dibutuhkan dashboard
+            localStorage.setItem(
+              "userData",
+              JSON.stringify({
+                nip: data.nip,
+                nama: data.nama,
+                perusahaan: data.perusahaan,
+                foto: data.foto || "",
+              })
+            );
+            // arahkan ke dashboard
+            window.location.href = "dashboard/dashboard.html";
           } else {
             alert("❌ NIP tidak ditemukan.");
           }
