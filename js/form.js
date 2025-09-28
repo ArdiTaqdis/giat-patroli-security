@@ -9,7 +9,7 @@ const beforeUnloadHandler = (e) => {
 let nip, nama, perusahaan, fotoUser;
 
 document.addEventListener("DOMContentLoaded", () => {
-  window.addEventListener("beforeunload", beforeUnloadHandler);
+  // window.addEventListener("beforeunload", beforeUnloadHandler);
 
   // ==== Ambil data user ====
   const userData = localStorage.getItem("userData");

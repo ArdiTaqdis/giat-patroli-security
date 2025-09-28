@@ -7,8 +7,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // Ambil array data pending dari localStorage
 function getPending() {
-  const raw = localStorage.getItem("pendingPatroli");
-  return raw ? JSON.parse(raw) : [];
+  const arr = [];
+  for (let i = 1; i <= 5; i++) {
+    const raw = localStorage.getItem(`patroliArea${i}`);
+    if (raw) arr.push({ ...JSON.parse(raw), area: i });
+  }
+  return arr;
 }
 
 // Simpan ulang ke localStorage setelah perubahan
