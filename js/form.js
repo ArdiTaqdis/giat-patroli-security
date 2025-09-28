@@ -1,22 +1,35 @@
-const scriptURL = "https://script.google.com/macros/s/AKfycbxy9J8w86sn_5mctVRQNpGX7BK-XRhXMoid7PgsYDdOPOx1z3QVn2iyfc5oal4sOS9dyA/exec";
+const scriptURL =
+  "https://script.google.com/macros/s/AKfycbxy9J8w86sn_5mctVRQNpGX7BK-XRhXMoid7PgsYDdOPOx1z3QVn2iyfc5oal4sOS9dyA/exec";
 let areaNow = 1;
 const maxArea = 5;
 const areaFotoCache = {};
-const areaQRCache = {};
 const areaKetCache = {};
 
 const beforeUnloadHandler = (e) => {
   e.preventDefault();
-  e.returnValue = '';
+  e.returnValue = "";
 };
 
 document.addEventListener("DOMContentLoaded", () => {
   window.addEventListener("beforeunload", beforeUnloadHandler);
 
-  const nip = localStorage.getItem("nipLogin");
-  const nama = localStorage.getItem("nama");
-  const perusahaan = localStorage.getItem("perusahaan");
-  const fotoUser = localStorage.getItem("fotoUser");
+  // --- Ambil data user ---
+  let nip, nama, perusahaan, fotoUser;
+  const userData = localStorage.getItem("userData");
+
+  if (userData) {
+    const u = JSON.parse(userData);
+    nip = u.nip;
+    nama = u.nama;
+    perusahaan = u.perusahaan;
+    fotoUser = u.foto;
+  } else {
+    // fallback ke format lama
+    nip = localStorage.getItem("nipLogin");
+    nama = localStorage.getItem("nama");
+    perusahaan = localStorage.getItem("perusahaan");
+    fotoUser = localStorage.getItem("fotoUser");
+  }
 
   if (!nip || !nama || !perusahaan) {
     alert("Silakan login terlebih dahulu.");
@@ -24,46 +37,56 @@ document.addEventListener("DOMContentLoaded", () => {
     return;
   }
 
+  // --- Tampilkan identitas ---
   document.getElementById("nip").innerText = nip;
   document.getElementById("nama").innerText = nama;
   document.getElementById("perusahaan").innerText = perusahaan;
   if (fotoUser) document.getElementById("fotoUser").src = fotoUser;
 
+  // --- waktu, jam, lokasi tetap ---
   const now = new Date();
-  document.getElementById("tanggal").innerText = now.toLocaleDateString("id-ID");
+  document.getElementById("tanggal").innerText =
+    now.toLocaleDateString("id-ID");
   updateJam();
   setInterval(updateJam, 1000);
 
   if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(pos => {
-      const lat = pos.coords.latitude.toFixed(5);
-      const lon = pos.coords.longitude.toFixed(5);
-      document.getElementById("lokasi").innerText = `📍 ${lat}, ${lon}`;
-      getAlamatFromCoords(lat, lon);
-    }, () => {
-      document.getElementById("lokasi").innerText = "❌ Gagal ambil lokasi";
-    });
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const lat = pos.coords.latitude.toFixed(5);
+        const lon = pos.coords.longitude.toFixed(5);
+        document.getElementById("lokasi").innerText = `📍 ${lat}, ${lon}`;
+        getAlamatFromCoords(lat, lon);
+      },
+      () => {
+        document.getElementById("lokasi").innerText = "❌ Gagal ambil lokasi";
+      }
+    );
   }
 
   updateNavButtons();
 });
 
 function updateJam() {
-  document.getElementById("jam").innerText = new Date().toLocaleTimeString("id-ID");
+  document.getElementById("jam").innerText = new Date().toLocaleTimeString(
+    "id-ID"
+  );
 }
 
 function getAlamatFromCoords(lat, lon) {
   const url = `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`;
   fetch(url, {
-    headers: { 'User-Agent': 'patroli-app/1.0' }
+    headers: { "User-Agent": "patroli-app/1.0" },
   })
-    .then(res => res.json())
-    .then(data => {
+    .then((res) => res.json())
+    .then((data) => {
       const alamat = data.display_name || `${lat}, ${lon}`;
       document.getElementById("lokasi").innerText = alamat;
     })
     .catch(() => {
-      document.getElementById("lokasi").innerText = `${lat}, ${lon} (❌ alamat gagal)`;
+      document.getElementById(
+        "lokasi"
+      ).innerText = `${lat}, ${lon} (❌ alamat gagal)`;
     });
 }
 
@@ -79,13 +102,64 @@ async function ambilFoto() {
     if (!file) return;
     const reader = new FileReader();
     reader.onload = async () => {
+      // 1. Kompres gambar seperti biasa
       const compressed = await resizeImage(reader.result);
-      document.getElementById("fotoPreviewMini").src = compressed;
+
+      // 2. Tambahkan teks watermark
+      const withText = await addWatermark(
+        compressed,
+        `${nama}`, // Nama Karyawan
+        new Date().toLocaleString("id-ID") // Tanggal & Jam
+      );
+
+      // 3. Tampilkan preview dan simpan
+      document.getElementById("fotoPreviewMini").src = withText;
       document.getElementById("fotoPreviewMini").style.display = "block";
-      areaFotoCache[`area${areaNow}`] = compressed;
+      areaFotoCache[`area${areaNow}`] = withText;
     };
     reader.readAsDataURL(file);
   };
+}
+
+function addWatermark(base64Str, namaPetugas, waktu) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.src = base64Str;
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+
+      // Ukuran canvas sama dengan gambar
+      canvas.width = img.width;
+      canvas.height = img.height;
+
+      // Gambar foto asli
+      ctx.drawImage(img, 0, 0);
+
+      // Setting teks
+      ctx.font = `${Math.floor(img.width * 0.035)}px Arial`;
+      ctx.fillStyle = "white";
+      ctx.strokeStyle = "black";
+      ctx.lineWidth = 3;
+      ctx.textBaseline = "bottom";
+
+      const margin = 20;
+
+      // Tulis Nama
+      const namaText = `Nama: ${namaPetugas}`;
+      const waktuText = `Tanggal: ${waktu}`;
+
+      // Bayangan teks agar terbaca di background terang
+      ctx.strokeText(namaText, margin, img.height - 2 * margin);
+      ctx.fillText(namaText, margin, img.height - 2 * margin);
+
+      ctx.strokeText(waktuText, margin, img.height - margin);
+      ctx.fillText(waktuText, margin, img.height - margin);
+
+      // Hasil base64
+      resolve(canvas.toDataURL("image/jpeg", 0.8));
+    };
+  });
 }
 
 function resizeImage(base64Str, maxWidth = 400, quality = 0.7) {
@@ -108,16 +182,10 @@ function resizeImage(base64Str, maxWidth = 400, quality = 0.7) {
 function nextArea() {
   const foto = areaFotoCache[`area${areaNow}`];
   const ket = document.getElementById("keterangan").value.trim();
-  const qr = document.getElementById("qrResult").innerText.trim();
-
-  if (!foto || !qr) {
-    alert("Lengkapi QR dan Foto sebelum lanjut.");
+  if (!foto) {
+    alert("Ambil Foto sebelum lanjut.");
     return;
   }
-
-  document.getElementById("loadingOverlay").style.display = "flex";
-  areaKetCache[`area${areaNow}`] = ket;
-  areaQRCache[`area${areaNow}`] = qr;
 
   setTimeout(() => {
     localStorage.setItem(`fotoArea${areaNow}`, foto);
@@ -141,11 +209,10 @@ function nextArea() {
 function updateNavButtons() {
   const nextBtn = document.getElementById("nextBtn");
 
-  nextBtn.innerText = areaNow === 5
-    ? '🚀 Selesai dan Kirim'
-    : '➡️ Area Berikutnya';
+  nextBtn.innerText =
+    areaNow === 5 ? "🚀 Selesai dan Kirim" : "➡️ Area Berikutnya";
 
-  nextBtn.style.backgroundColor = areaNow === 5 ? '#d32f2f' : '#2d800d';
+  nextBtn.style.backgroundColor = areaNow === 5 ? "#d32f2f" : "#2d800d";
 }
 
 function resetFormForNewArea() {
@@ -153,25 +220,6 @@ function resetFormForNewArea() {
   document.getElementById("fotoPreviewMini").style.display = "none";
   document.getElementById("qrResult").innerText = "";
   document.getElementById("keterangan").value = "";
-}
-
-function scanQRCode() {
-  const qrDiv = document.getElementById("reader");
-  qrDiv.innerHTML = "";
-
-  const html5QrCode = new Html5Qrcode("reader");
-  html5QrCode.start(
-    { facingMode: "environment" },
-    { fps: 10, qrbox: 250 },
-    (decodedText) => {
-      html5QrCode.stop();
-      document.getElementById("qrResult").innerText = decodedText;
-      qrDiv.innerHTML = "";
-    },
-    () => {}
-  ).catch(err => {
-    document.getElementById("qrResult").innerText = "❌ Gagal scan: " + err;
-  });
 }
 
 function openModal() {
@@ -188,7 +236,10 @@ async function submitFinal() {
   }
 
   for (let i = 1; i <= 5; i++) {
-    if (!localStorage.getItem(`fotoArea${i}`) || !localStorage.getItem(`qrArea${i}`)) {
+    if (
+      !localStorage.getItem(`fotoArea${i}`) ||
+      !localStorage.getItem(`qrArea${i}`)
+    ) {
       alert(`Data Area ${i} belum lengkap.`);
       return;
     }
@@ -206,12 +257,17 @@ async function submitFinal() {
 
   const formData = {
     action: "patroli",
-    nip, nama, perusahaan, tanggal, jam, lokasi, timestamp,
-    status: "Proses"
+    nip,
+    nama,
+    perusahaan,
+    tanggal,
+    jam,
+    lokasi,
+    timestamp,
+    status: "Proses",
   };
 
   for (let i = 1; i <= 5; i++) {
-    formData[`qr${i}`] = localStorage.getItem(`qrArea${i}`);
     formData[`foto${i}`] = localStorage.getItem(`fotoArea${i}`);
     formData[`ket${i}`] = localStorage.getItem(`ketArea${i}`) || "";
   }
@@ -219,14 +275,13 @@ async function submitFinal() {
   try {
     const res = await fetch(scriptURL, {
       method: "POST",
-      body: new URLSearchParams(formData)
+      body: new URLSearchParams(formData),
     });
 
     const result = await res.json();
 
     if (result.status === "success") {
       for (let i = 1; i <= 5; i++) {
-        localStorage.removeItem(`qrArea${i}`);
         localStorage.removeItem(`fotoArea${i}`);
         localStorage.removeItem(`ketArea${i}`);
       }

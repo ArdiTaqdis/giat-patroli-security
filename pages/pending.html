@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Absen Pending</title>
+    <link rel="stylesheet" href="../style.css" />
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        padding: 15px;
+        background: #f0f8ff;
+      }
+      h1 {
+        text-align: center;
+        margin-bottom: 20px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 15px;
+      }
+      th,
+      td {
+        border: 1px solid #ccc;
+        padding: 8px;
+        text-align: center;
+      }
+      th {
+        background: #2196f3;
+        color: white;
+      }
+      .btn {
+        padding: 8px 14px;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        color: white;
+        font-weight: bold;
+      }
+      .btn-kirim {
+        background: #2d800d;
+      }
+      .btn-hapus {
+        background: #d32f2f;
+      }
+      .btn-kirim:disabled {
+        background: #aaa;
+        cursor: not-allowed;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>⏳ Absen Pending</h1>
+
+    <p style="text-align: center">
+      Daftar data patroli yang belum terkirim ke server.
+    </p>
+
+    <table id="pendingTable">
+      <thead>
+        <tr>
+          <th>No</th>
+          <th>Tanggal</th>
+          <th>Jam</th>
+          <th>Nama</th>
+          <th>Perusahaan</th>
+          <th>Aksi</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+    <div style="text-align: center; margin-top: 15px">
+      <button id="btnKirimSemua" class="btn btn-kirim">🚀 Kirim Semua</button>
+    </div>
+
+    <div
+      id="statusInfo"
+      style="text-align: center; margin-top: 15px; font-weight: bold"
+    ></div>
+
+    <script src="pending.js"></script>
+  </body>
+</html>
