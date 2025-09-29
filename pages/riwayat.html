@@ -7,6 +7,9 @@
 
     <link rel="stylesheet" href="../style/loading.css" />
     <link rel="stylesheet" href="../style/table-page.css" />
+    <!-- ✅ jsPDF + AutoTable -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
 
     <style>
       .table-wrapper {
@@ -72,6 +75,7 @@
         Tahun:
         <select id="tahun"></select>
         <button id="btnTampil">🔍 Tampilkan</button>
+        <button onclick="exportPDF()">📄 Export PDF</button>
       </div>
 
       <div class="table-wrapper">
@@ -209,6 +213,59 @@
           );
         };
       });
+    </script>
+    <script>
+      async function exportPDF() {
+        // Ambil bulan/tahun yang sedang dipilih
+        const bulan = document.getElementById("bulan").value;
+        const tahun = document.getElementById("tahun").value;
+        const user = JSON.parse(localStorage.getItem("userData") || "{}");
+        if (!user.nip) {
+          alert("Anda belum login!");
+          return;
+        }
+
+        // Ambil data dari tabel HTML (bukan fetch lagi, biar sesuai tampilan)
+        const rows = [];
+        document.querySelectorAll("#laporanTable tbody tr").forEach((tr) => {
+          const cols = [...tr.querySelectorAll("td")].map((td) =>
+            td.innerText.trim()
+          );
+          if (cols.length && cols[0] !== "Tidak ada data bulan ini")
+            rows.push(cols);
+        });
+
+        if (!rows.length) {
+          alert("⚠️ Tidak ada data untuk diexport.");
+          return;
+        }
+
+        // Buat dokumen PDF
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF("p", "pt", "a4"); // potrait, point, A4
+        const title = `Laporan Patroli - ${bulan}/${tahun}`;
+        doc.setFontSize(14);
+        doc.text(title, 40, 40);
+        doc.setFontSize(10);
+        doc.text(`Nama: ${user.nama || "-"}   NIP: ${user.nip}`, 40, 60);
+
+        // Ambil header dari tabel
+        const headers = [
+          ...document.querySelectorAll("#laporanTable thead th"),
+        ].map((th) => th.innerText);
+
+        // Masukkan tabel ke PDF
+        doc.autoTable({
+          startY: 80,
+          head: [headers],
+          body: rows,
+          styles: { fontSize: 9 },
+          headStyles: { fillColor: [255, 224, 224], textColor: [183, 28, 28] },
+        });
+
+        // Simpan file
+        doc.save(`Laporan-Patroli-${bulan}-${tahun}.pdf`);
+      }
     </script>
   </body>
 </html>
