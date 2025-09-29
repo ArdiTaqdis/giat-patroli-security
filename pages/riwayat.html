@@ -41,20 +41,10 @@
         header p {
           font-size: 0.85rem;
         }
-        /* Baris ganjil */
-        .table-wrapper tbody tr:nth-child(odd) {
-          background-color: #fafafa; /* abu muda */
-        }
-
-        /* Baris genap */
-        .table-wrapper tbody tr:nth-child(even) {
-          background-color: #ffffff; /* putih */
-        }
-
-        /* Saat hover (opsional) */
-        .table-wrapper tbody tr:hover {
-          background-color: #ffecec; /* pink lembut */
-          transition: background-color 0.2s ease;
+        .table-wrapper th,
+        .table-wrapper td {
+          font-size: 0.85rem;
+          padding: 8px;
         }
       }
 
@@ -298,13 +288,25 @@
           startY: 80,
           head: [headers],
           body: tableRows,
+          didDrawCell: async (data) => {
+            // Sisipkan gambar thumbnail di kolom terakhir
+            if (data.section === "body" && data.column.index === 5) {
+              const imgSrc = fotoList[data.row.index];
+              if (imgSrc) {
+                const dim = 25; // ukuran thumbnail (px)
+                const xPos = data.cell.x + (data.cell.width - dim) / 2;
+                const yPos = data.cell.y + 2;
+                try {
+                  doc.addImage(imgSrc, "JPEG", xPos, yPos, dim, dim);
+                } catch (e) {
+                  console.warn("Gagal tambah gambar:", e);
+                }
+              }
+            }
+          },
           styles: { fontSize: 9, cellPadding: 3 },
           headStyles: { fillColor: [255, 224, 224], textColor: [183, 28, 28] },
-          alternateRowStyles: { fillColor: [245, 245, 245] }, // ⚡ abu muda
-          columnStyles: {
-            3: { cellWidth: 80 }, // contoh atur kolom Lokasi
-            5: { cellWidth: 40 }, // kolom Foto thumbnail
-          },
+          columnStyles: { 5: { cellWidth: 40 } }, // atur lebar kolom foto
         });
 
         doc.save(`Laporan-Patroli-${bulan}-${tahun}-foto.pdf`);
