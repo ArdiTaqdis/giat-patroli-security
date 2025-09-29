@@ -49,10 +49,31 @@
   <body>
     <header>
       <h1>📊 Laporan Patroli</h1>
-      <p>Laporan patroli bulan berjalan</p>
+      <p>Laporan patroli berdasarkan bulan</p>
     </header>
 
+    <div
+      style="
+        background: #f7f7f7;
+        padding: 8px;
+        border-radius: 6px;
+        margin-bottom: 10px;
+      "
+    >
+      <p>
+        📆 Pilih periode untuk melihat laporan patroli yang tersimpan di server.
+      </p>
+    </div>
+
     <div class="container">
+      <div class="filter-box">
+        Bulan:
+        <select id="bulan"></select>
+        Tahun:
+        <select id="tahun"></select>
+        <button id="btnTampil">🔍 Tampilkan</button>
+      </div>
+
       <div class="table-wrapper">
         <table id="laporanTable">
           <thead>
@@ -67,7 +88,7 @@
           </thead>
           <tbody>
             <tr>
-              <td colspan="8" style="text-align: center; color: #777">
+              <td colspan="6" style="text-align: center; color: #777">
                 Memuat data...
               </td>
             </tr>
@@ -86,8 +107,11 @@
     <script>
       const scriptURL =
         "https://script.google.com/macros/s/AKfycbw2zRW21O9OaQxDRl58I9BOs7MvtdgqoHTE-oXZOUug1WHRhT1QxsSAOH68WcNji8MAbA/exec";
+      const bulanEl = document.getElementById("bulan");
+      const tahunEl = document.getElementById("tahun");
+      const btnTampil = document.getElementById("btnTampil");
 
-      document.addEventListener("DOMContentLoaded", async () => {
+      document.addEventListener("DOMContentLoaded", () => {
         const user = JSON.parse(localStorage.getItem("userData") || "{}");
         if (!user.nip) {
           alert("⚠️ Anda belum login!");
@@ -95,55 +119,71 @@
           return;
         }
 
-        const now = new Date();
-        const bulan = String(now.getMonth() + 1).padStart(2, "0");
-        const tahun = String(now.getFullYear());
+        // ✅ Isi dropdown bulan
+        const bulanList = [
+          "Januari",
+          "Februari",
+          "Maret",
+          "April",
+          "Mei",
+          "Juni",
+          "Juli",
+          "Agustus",
+          "September",
+          "Oktober",
+          "November",
+          "Desember",
+        ];
+        bulanList.forEach((b, i) => {
+          bulanEl.innerHTML += `<option value="${String(i + 1).padStart(
+            2,
+            "0"
+          )}">${b}</option>`;
+        });
 
-        document.getElementById("loadingOverlay").style.display = "flex";
-
-        try {
-          const res = await fetch(
-            `${scriptURL}?action=getPatroliFiltered&nip=${encodeURIComponent(
-              user.nip
-            )}&bulan=${bulan}&tahun=${tahun}`
-          );
-
-          const text = await res.text();
-          console.log("RAW RESPONSE:", text);
-
-          let rows;
-          try {
-            rows = JSON.parse(text);
-          } catch (e) {
-            console.error("JSON parse error:", e);
-            alert("❌ Gagal parse JSON");
-            return;
-          }
-
-          console.log("ROWS ARRAY:", rows);
-
-          if (Array.isArray(rows)) {
-            renderTable(rows);
-          } else {
-            console.warn("Response bukan array:", rows);
-          }
-        } catch (err) {
-          console.error("Fetch Error:", err);
-          alert("❌ Gagal memuat data: " + err);
+        // ✅ Isi dropdown tahun (mundur dari sekarang)
+        const yNow = new Date().getFullYear();
+        for (let y = yNow; y >= 2023; y--) {
+          tahunEl.innerHTML += `<option value="${y}">${y}</option>`;
         }
 
-        document.getElementById("loadingOverlay").style.display = "none";
+        // ✅ Set default ke bulan & tahun saat ini
+        const now = new Date();
+        bulanEl.value = String(now.getMonth() + 1).padStart(2, "0");
+        tahunEl.value = String(now.getFullYear());
+
+        // ✅ Load awal
+        loadData();
+
+        // Klik tombol tampil
+        btnTampil.addEventListener("click", loadData);
+
+        async function loadData() {
+          document.getElementById("loadingOverlay").style.display = "flex";
+          try {
+            const bulan = bulanEl.value;
+            const tahun = tahunEl.value;
+            const res = await fetch(
+              `${scriptURL}?action=getPatroliFiltered&nip=${encodeURIComponent(
+                user.nip
+              )}&bulan=${bulan}&tahun=${tahun}`
+            );
+            const rows = await res.json();
+            renderTable(rows);
+          } catch (err) {
+            console.error("Fetch Error:", err);
+            alert("❌ Gagal memuat data");
+          }
+          document.getElementById("loadingOverlay").style.display = "none";
+        }
 
         function renderTable(rows) {
           const tb = document.querySelector("#laporanTable tbody");
           tb.innerHTML = "";
           if (!rows.length) {
-            tb.innerHTML = `<tr><td colspan="6" style="text-align:center;color:#777;">
-        Tidak ada data bulan ini
-      </td></tr>`;
+            tb.innerHTML = `<tr><td colspan="6" style="text-align:center;color:#777;">Tidak ada data periode ini</td></tr>`;
             return;
           }
-
           rows.forEach((r, i) => {
             const tr = document.createElement("tr");
             tr.innerHTML = `
@@ -152,24 +192,23 @@
         <td>${r.jam}</td>
         <td>${r.lokasi}</td>
         <td>${r.area}</td>
-        <td>
-          <img src="${
-            r.foto
-          }" style="max-width:80px;max-height:60px;border-radius:6px;cursor:pointer"
-               onclick="lihatFoto('${r.foto}')">
-        </td>`;
+        <td><img src="${
+          r.foto
+        }" style="max-width:80px;max-height:60px;border-radius:6px;cursor:pointer"
+                 onclick="lihatFoto('${r.foto}')"></td>`;
             tb.appendChild(tr);
           });
         }
 
-        function lihatFoto(src) {
+        window.lihatFoto = function (src) {
           const w = window.open("", "_blank");
           w.document.write(
             `<html><body style="margin:0;display:flex;justify-content:center;align-items:center;background:#000;">
-       <img src="${src}" style="max-width:100%;max-height:100%;"></body></html>`
+         <img src="${src}" style="max-width:100%;max-height:100%;">
+       </body></html>`
           );
-        }
-      }); // ✅ ← inilah yang tadinya hilang
+        };
+      });
     </script>
   </body>
 </html>
