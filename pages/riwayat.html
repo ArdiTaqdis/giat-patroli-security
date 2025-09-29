@@ -214,57 +214,84 @@
         };
       });
     </script>
+
     <script>
-      async function exportPDF() {
-        // Ambil bulan/tahun yang sedang dipilih
+      async function exportPDFwithThumb() {
         const bulan = document.getElementById("bulan").value;
         const tahun = document.getElementById("tahun").value;
         const user = JSON.parse(localStorage.getItem("userData") || "{}");
+
         if (!user.nip) {
           alert("Anda belum login!");
           return;
         }
 
-        // Ambil data dari tabel HTML (bukan fetch lagi, biar sesuai tampilan)
-        const rows = [];
+        const tableRows = [];
+        const fotoList = [];
+
+        // Ambil data dari tabel HTML
         document.querySelectorAll("#laporanTable tbody tr").forEach((tr) => {
-          const cols = [...tr.querySelectorAll("td")].map((td) =>
-            td.innerText.trim()
-          );
-          if (cols.length && cols[0] !== "Tidak ada data bulan ini")
-            rows.push(cols);
+          const tds = tr.querySelectorAll("td");
+          if (tds.length < 6) return;
+          const rowData = [
+            tds[0].innerText.trim(),
+            tds[1].innerText.trim(),
+            tds[2].innerText.trim(),
+            tds[3].innerText.trim(),
+            tds[4].innerText.trim(),
+            "", // kolom foto akan diisi gambar
+          ];
+          tableRows.push(rowData);
+
+          // Ambil src foto untuk gambar thumbnail
+          const imgEl = tds[5].querySelector("img");
+          fotoList.push(imgEl ? imgEl.src : null);
         });
 
-        if (!rows.length) {
+        if (!tableRows.length) {
           alert("⚠️ Tidak ada data untuk diexport.");
           return;
         }
 
-        // Buat dokumen PDF
         const { jsPDF } = window.jspdf;
-        const doc = new jsPDF("p", "pt", "a4"); // potrait, point, A4
+        const doc = new jsPDF("p", "pt", "a4");
         const title = `Laporan Patroli - ${bulan}/${tahun}`;
         doc.setFontSize(14);
         doc.text(title, 40, 40);
         doc.setFontSize(10);
         doc.text(`Nama: ${user.nama || "-"}   NIP: ${user.nip}`, 40, 60);
 
-        // Ambil header dari tabel
         const headers = [
           ...document.querySelectorAll("#laporanTable thead th"),
         ].map((th) => th.innerText);
 
-        // Masukkan tabel ke PDF
+        // Buat tabel sementara (tanpa foto) dulu
         doc.autoTable({
           startY: 80,
           head: [headers],
-          body: rows,
-          styles: { fontSize: 9 },
+          body: tableRows,
+          didDrawCell: async (data) => {
+            // Sisipkan gambar thumbnail di kolom terakhir
+            if (data.section === "body" && data.column.index === 5) {
+              const imgSrc = fotoList[data.row.index];
+              if (imgSrc) {
+                const dim = 25; // ukuran thumbnail (px)
+                const xPos = data.cell.x + (data.cell.width - dim) / 2;
+                const yPos = data.cell.y + 2;
+                try {
+                  doc.addImage(imgSrc, "JPEG", xPos, yPos, dim, dim);
+                } catch (e) {
+                  console.warn("Gagal tambah gambar:", e);
+                }
+              }
+            }
+          },
+          styles: { fontSize: 9, cellPadding: 3 },
           headStyles: { fillColor: [255, 224, 224], textColor: [183, 28, 28] },
+          columnStyles: { 5: { cellWidth: 40 } }, // atur lebar kolom foto
         });
 
-        // Simpan file
-        doc.save(`Laporan-Patroli-${bulan}-${tahun}.pdf`);
+        doc.save(`Laporan-Patroli-${bulan}-${tahun}-foto.pdf`);
       }
     </script>
   </body>
