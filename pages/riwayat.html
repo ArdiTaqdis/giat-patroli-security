@@ -75,7 +75,7 @@
         Tahun:
         <select id="tahun"></select>
         <button id="btnTampil">🔍 Tampilkan</button>
-        <button onclick="exportPDF()">📄 Export PDF</button>
+        <button onclick="exportPDFwithThumb()">📸 Export PDF + Foto</button>
       </div>
 
       <div class="table-wrapper">
@@ -216,7 +216,7 @@
     </script>
 
     <script>
-      async function exportPDFwithThumb() {
+      window.exportPDFwithThumb = async function exportPDFwithThumb() {
         const bulan = document.getElementById("bulan").value;
         const tahun = document.getElementById("tahun").value;
         const user = JSON.parse(localStorage.getItem("userData") || "{}");
@@ -292,7 +292,7 @@
         });
 
         doc.save(`Laporan-Patroli-${bulan}-${tahun}-foto.pdf`);
-      }
+      };
     </script>
   </body>
 </html>
