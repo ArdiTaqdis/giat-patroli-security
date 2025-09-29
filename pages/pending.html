@@ -3,6 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="../style/loading.css" />
     <title>Absen Pending - Giat Patroli</title>
 
     <!-- Google Fonts -->
@@ -138,6 +139,49 @@
           display: none;
         } /* sembunyikan kolom jam di mobile */
       }
+
+      .success-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.6);
+        display: none; /* default sembunyi */
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+      }
+
+      .success-box {
+        background: #e8f5e9;
+        padding: 25px 30px;
+        border-radius: 12px;
+        text-align: center;
+        max-width: 320px;
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+      }
+      .success-box .icon {
+        font-size: 48px;
+        margin-bottom: 10px;
+      }
+      .success-box h2 {
+        margin: 0 0 10px;
+        color: #2e7d32;
+      }
+      .success-box button {
+        margin-top: 15px;
+        background: #2e7d32;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 600;
+      }
+      .success-box button:hover {
+        background: #1b5e20;
+      }
     </style>
   </head>
   <body>
@@ -153,6 +197,13 @@
       <div class="alert-info">
         ⚠️ <b>Penting!</b> Kirim data sesegera mungkin agar laporan patroli
         tercatat di server.
+      </div>
+
+      <!-- 🔥 Tombol Kirim Semua -->
+      <div style="text-align: right; margin-bottom: 10px">
+        <button class="btn btn-kirim" onclick="kirimSemua()">
+          🚀 Kirim Semua
+        </button>
       </div>
 
       <table id="pendingTable">
@@ -174,7 +225,25 @@
 
     <div class="footer">&copy; 2025 Giat Patroli Security</div>
 
-    <!-- Script untuk menampilkan data dari localStorage dan kirim ke server -->
+    <!-- ✅ Overlay Loading -->
+    <div id="loadingOverlay" class="loading-overlay">
+      <div class="spinner"></div>
+      <p style="color: white; margin-top: 10px">Mengirim data ke server...</p>
+    </div>
+
+    <!-- ✅ Success Overlay -->
+    <div id="successOverlay" class="success-overlay">
+      <div class="success-box">
+        <div class="icon">✅</div>
+        <h2>Semua Data Terkirim!</h2>
+        <p>
+          Terima kasih, seluruh area patroli telah berhasil dikirim ke server.
+        </p>
+        <button onclick="closeOverlay()">OK</button>
+      </div>
+    </div>
+
+    <!-- ✅ Script harus di paling bawah -->
     <script src="../js/pending.js"></script>
   </body>
 </html>

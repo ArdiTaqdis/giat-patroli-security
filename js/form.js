@@ -232,8 +232,14 @@ function simpanArea() {
       })
     );
   } else {
-    // semua area selesai
-    resetPatroli(); // reset progress setelah 5 area
+    // ✅ semua area selesai → reset ke area 1
+    localStorage.setItem(
+      "patroliProgress",
+      JSON.stringify({
+        currentArea: 1, // 🚀 balik ke area 1
+        startTime: Date.now(), // simpan waktu baru (untuk auto reset 12 jam)
+      })
+    );
     alert(
       "🎉 Anda sudah menyelesaikan patroli 5 area. " +
         "Silakan kirim data ke server melalui menu Absen Pending."

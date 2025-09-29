@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Laporan Patroli - Giat Security</title>
+
+    <link rel="stylesheet" href="../style/loading.css" />
+    <link rel="stylesheet" href="../style/table-page.css" />
+
+    <style>
+      .table-wrapper {
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+      .table-wrapper table {
+        width: 100%;
+        min-width: 700px;
+        border-collapse: collapse;
+      }
+      .table-wrapper th,
+      .table-wrapper td {
+        padding: 10px;
+        border-bottom: 1px solid #eee;
+        text-align: left;
+        font-size: 0.9rem;
+      }
+      .table-wrapper th {
+        background: #ffe0e0;
+        color: #b71c1c;
+        font-weight: 600;
+      }
+      @media (max-width: 600px) {
+        header h1 {
+          font-size: 1.4rem;
+        }
+        header p {
+          font-size: 0.85rem;
+        }
+        .table-wrapper th,
+        .table-wrapper td {
+          font-size: 0.85rem;
+          padding: 8px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>📊 Laporan Patroli</h1>
+      <p>Laporan patroli bulan berjalan</p>
+    </header>
+
+    <div class="container">
+      <div class="table-wrapper">
+        <table id="laporanTable">
+          <thead>
+            <tr>
+              <th>No</th>
+              <th>Tgl</th>
+              <th>Jam</th>
+              <th>Lokasi</th>
+              <th>Area</th>
+              <th>Foto</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td colspan="8" style="text-align: center; color: #777">
+                Memuat data...
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="footer">&copy; 2025 Giat Patroli Security</div>
+
+    <div id="loadingOverlay" class="loading-overlay">
+      <div class="spinner"></div>
+      <p style="color: white; margin-top: 10px">Memuat data...</p>
+    </div>
+
+    <script>
+      const scriptURL =
+        "https://script.google.com/macros/s/AKfycbw2zRW21O9OaQxDRl58I9BOs7MvtdgqoHTE-oXZOUug1WHRhT1QxsSAOH68WcNji8MAbA/exec";
+
+      document.addEventListener("DOMContentLoaded", async () => {
+        const user = JSON.parse(localStorage.getItem("userData") || "{}");
+        if (!user.nip) {
+          alert("⚠️ Anda belum login!");
+          location.href = "../login.html";
+          return;
+        }
+
+        const now = new Date();
+        const bulan = String(now.getMonth() + 1).padStart(2, "0");
+        const tahun = String(now.getFullYear());
+
+        document.getElementById("loadingOverlay").style.display = "flex";
+
+        try {
+          const res = await fetch(
+            `${scriptURL}?action=getPatroliFiltered&nip=${encodeURIComponent(
+              user.nip
+            )}&bulan=${bulan}&tahun=${tahun}`
+          );
+
+          const text = await res.text();
+          console.log("RAW RESPONSE:", text);
+
+          let rows;
+          try {
+            rows = JSON.parse(text);
+          } catch (e) {
+            console.error("JSON parse error:", e);
+            alert("❌ Gagal parse JSON");
+            return;
+          }
+
+          console.log("ROWS ARRAY:", rows);
+
+          if (Array.isArray(rows)) {
+            renderTable(rows);
+          } else {
+            console.warn("Response bukan array:", rows);
+          }
+        } catch (err) {
+          console.error("Fetch Error:", err);
+          alert("❌ Gagal memuat data: " + err);
+        }
+
+        document.getElementById("loadingOverlay").style.display = "none";
+
+        function renderTable(rows) {
+          const tb = document.querySelector("#laporanTable tbody");
+          tb.innerHTML = "";
+          if (!rows.length) {
+            tb.innerHTML = `<tr><td colspan="6" style="text-align:center;color:#777;">
+        Tidak ada data bulan ini
+      </td></tr>`;
+            return;
+          }
+
+          rows.forEach((r, i) => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+        <td>${i + 1}</td>
+        <td>${r.tanggal}</td>
+        <td>${r.jam}</td>
+        <td>${r.lokasi}</td>
+        <td>${r.area}</td>
+        <td>
+          <img src="${
+            r.foto
+          }" style="max-width:80px;max-height:60px;border-radius:6px;cursor:pointer"
+               onclick="lihatFoto('${r.foto}')">
+        </td>`;
+            tb.appendChild(tr);
+          });
+        }
+
+        function lihatFoto(src) {
+          const w = window.open("", "_blank");
+          w.document.write(
+            `<html><body style="margin:0;display:flex;justify-content:center;align-items:center;background:#000;">
+       <img src="${src}" style="max-width:100%;max-height:100%;"></body></html>`
+          );
+        }
+      }); // ✅ ← inilah yang tadinya hilang
+    </script>
+  </body>
+</html>

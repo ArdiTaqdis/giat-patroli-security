@@ -53,9 +53,9 @@
         <div class="icon">⏳</div>
         <p>Absen Pending</p>
       </a>
-      <a href="riwayat.html" class="menu-card">
+      <a href="../pages/riwayat.html" class="menu-card">
         <div class="icon">📅</div>
-        <p>Riwayat Absen</p>
+        <p>Laporan Patroli</p>
       </a>
       <a href="panduan.html" class="menu-card">
         <div class="icon">📚</div>
@@ -99,6 +99,25 @@
       setInterval(updateDateTime, 1000);
       updateDateTime();
     </script>
+
+    <!-- Ambil data dari localStorage -->
+    <script>
+      const userData = JSON.parse(localStorage.getItem("userData"));
+
+      if (userData) {
+        document.getElementById("nipHidden").value = userData.nip;
+        document.getElementById("namaUser").textContent = userData.nama;
+        document.getElementById("perusahaan").textContent = userData.perusahaan;
+
+        if (userData.foto) {
+          document.getElementById("fotoUser").src = userData.foto;
+        }
+      } else {
+        alert("⚠️ Silakan login terlebih dahulu.");
+        window.location.href = "../login.html";
+      }
+    </script>
+
     <!-- <script src="dashboard.js"></script> -->
     <script src="../js/pending.js"></script>
   </body>
