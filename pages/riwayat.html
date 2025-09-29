@@ -41,11 +41,44 @@
         header p {
           font-size: 0.85rem;
         }
-        .table-wrapper th,
-        .table-wrapper td {
-          font-size: 0.85rem;
-          padding: 8px;
+        /* Baris ganjil */
+        .table-wrapper tbody tr:nth-child(odd) {
+          background-color: #fafafa; /* abu muda */
         }
+
+        /* Baris genap */
+        .table-wrapper tbody tr:nth-child(even) {
+          background-color: #ffffff; /* putih */
+        }
+
+        /* Saat hover (opsional) */
+        .table-wrapper tbody tr:hover {
+          background-color: #ffecec; /* pink lembut */
+          transition: background-color 0.2s ease;
+        }
+      }
+
+      .periode-box {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: #f7f7f7;
+        padding: 12px 16px;
+        border-left: 4px solid #b71c1c; /* garis aksen */
+        border-radius: 8px;
+        margin: 15px auto;
+        font-size: 1rem;
+        font-weight: 500;
+        color: #333;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+      }
+
+      .periode-icon {
+        font-size: 1.4rem;
+      }
+
+      .periode-text {
+        flex: 1;
       }
     </style>
   </head>
@@ -55,17 +88,12 @@
       <p>Laporan patroli berdasarkan bulan</p>
     </header>
 
-    <div
-      style="
-        background: #f7f7f7;
-        padding: 8px;
-        border-radius: 6px;
-        margin-bottom: 10px;
-      "
-    >
-      <p>
-        📆 Pilih periode untuk melihat laporan patroli yang tersimpan di server.
-      </p>
+    <div class="periode-box">
+      <span class="periode-icon">📆</span>
+      <span class="periode-text"
+        >Pilih periode untuk melihat laporan patroli yang tersimpan di
+        server</span
+      >
     </div>
 
     <div class="container">
@@ -270,25 +298,13 @@
           startY: 80,
           head: [headers],
           body: tableRows,
-          didDrawCell: async (data) => {
-            // Sisipkan gambar thumbnail di kolom terakhir
-            if (data.section === "body" && data.column.index === 5) {
-              const imgSrc = fotoList[data.row.index];
-              if (imgSrc) {
-                const dim = 25; // ukuran thumbnail (px)
-                const xPos = data.cell.x + (data.cell.width - dim) / 2;
-                const yPos = data.cell.y + 2;
-                try {
-                  doc.addImage(imgSrc, "JPEG", xPos, yPos, dim, dim);
-                } catch (e) {
-                  console.warn("Gagal tambah gambar:", e);
-                }
-              }
-            }
-          },
           styles: { fontSize: 9, cellPadding: 3 },
           headStyles: { fillColor: [255, 224, 224], textColor: [183, 28, 28] },
-          columnStyles: { 5: { cellWidth: 40 } }, // atur lebar kolom foto
+          alternateRowStyles: { fillColor: [245, 245, 245] }, // ⚡ abu muda
+          columnStyles: {
+            3: { cellWidth: 80 }, // contoh atur kolom Lokasi
+            5: { cellWidth: 40 }, // kolom Foto thumbnail
+          },
         });
 
         doc.save(`Laporan-Patroli-${bulan}-${tahun}-foto.pdf`);
