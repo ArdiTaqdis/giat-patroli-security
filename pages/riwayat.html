@@ -234,6 +234,18 @@
     </script>
 
     <script>
+      // 🔥 Helper: konversi URL → Base64 biar bisa dipakai jsPDF
+      async function toBase64(url) {
+        const res = await fetch(url, { mode: "cors" }); // ambil blob
+        const blob = await res.blob();
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result);
+          reader.onerror = reject;
+          reader.readAsDataURL(blob);
+        });
+      }
+
       window.exportPDFwithThumb = async function exportPDFwithThumb() {
         const bulan = document.getElementById("bulan").value;
         const tahun = document.getElementById("tahun").value;
@@ -247,7 +259,7 @@
         const tableRows = [];
         const fotoList = [];
 
-        // Ambil data dari tabel HTML
+        // 🔑 Ambil data dari tabel HTML
         document.querySelectorAll("#laporanTable tbody tr").forEach((tr) => {
           const tds = tr.querySelectorAll("td");
           if (tds.length < 6) return;
@@ -257,11 +269,11 @@
             tds[2].innerText.trim(),
             tds[3].innerText.trim(),
             tds[4].innerText.trim(),
-            "", // kolom foto akan diisi gambar
+            "", // kolom foto → isi manual dengan addImage
           ];
           tableRows.push(rowData);
 
-          // Ambil src foto untuk gambar thumbnail
+          // Simpan URL gambar dari kolom foto
           const imgEl = tds[5].querySelector("img");
           fotoList.push(imgEl ? imgEl.src : null);
         });
@@ -273,6 +285,8 @@
 
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF("p", "pt", "a4");
+
+        // 🔥 Header PDF
         const title = `Laporan Patroli - ${bulan}/${tahun}`;
         doc.setFontSize(14);
         doc.text(title, 40, 40);
@@ -283,32 +297,34 @@
           ...document.querySelectorAll("#laporanTable thead th"),
         ].map((th) => th.innerText);
 
-        // Buat tabel sementara (tanpa foto) dulu
-        doc.autoTable({
+        // 🔥 Buat tabel
+        await doc.autoTable({
           startY: 80,
           head: [headers],
           body: tableRows,
           didDrawCell: async (data) => {
-            // Sisipkan gambar thumbnail di kolom terakhir
+            // sisipkan foto di kolom ke-6
             if (data.section === "body" && data.column.index === 5) {
               const imgSrc = fotoList[data.row.index];
               if (imgSrc) {
-                const dim = 25; // ukuran thumbnail (px)
-                const xPos = data.cell.x + (data.cell.width - dim) / 2;
-                const yPos = data.cell.y + 2;
                 try {
-                  doc.addImage(imgSrc, "JPEG", xPos, yPos, dim, dim);
+                  const base64Img = await toBase64(imgSrc);
+                  const dim = 30; // ukuran thumbnail
+                  const xPos = data.cell.x + (data.cell.width - dim) / 2;
+                  const yPos = data.cell.y + 2;
+                  doc.addImage(base64Img, "JPEG", xPos, yPos, dim, dim);
                 } catch (e) {
-                  console.warn("Gagal tambah gambar:", e);
+                  console.warn("⚠️ Gagal load gambar:", e);
                 }
               }
             }
           },
-          styles: { fontSize: 9, cellPadding: 3 },
+          styles: { fontSize: 9, cellPadding: 3, minCellHeight: 34 },
           headStyles: { fillColor: [255, 224, 224], textColor: [183, 28, 28] },
-          columnStyles: { 5: { cellWidth: 40 } }, // atur lebar kolom foto
+          columnStyles: { 5: { cellWidth: 50 } }, // kolom foto
         });
 
+        // 🔥 Simpan PDF
         doc.save(`Laporan-Patroli-${bulan}-${tahun}-foto.pdf`);
       };
     </script>
