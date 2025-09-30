@@ -113,11 +113,11 @@ async function ambilFoto() {
   input.onchange = async () => {
     const file = input.files[0];
     if (!file) return;
-
     const reader = new FileReader();
     reader.onload = async () => {
-      const withText = await addWatermarkAndResize(
-        reader.result,
+      const compressed = await resizeImage(reader.result);
+      const withText = await addWatermark(
+        compressed,
         nama,
         perusahaan,
         new Date().toLocaleString("id-ID")
@@ -130,42 +130,40 @@ async function ambilFoto() {
   };
 }
 
-function addWatermarkAndResize(
-  base64Str,
-  namaPetugas,
-  perusahaanPetugas,
-  waktu,
-  maxWidth = 400,
-  quality = 0.7
-) {
+function addWatermark(base64Str, namaPetugas, perusahaanPetugas, waktu) {
   return new Promise((resolve) => {
     const img = new Image();
     img.src = base64Str;
     img.onload = () => {
-      const scale = Math.min(1, maxWidth / img.width);
-      const w = Math.round(img.width * scale);
-      const h = Math.round(img.height * scale);
       const canvas = document.createElement("canvas");
       const ctx = canvas.getContext("2d");
-      canvas.width = w;
-      canvas.height = h;
-      ctx.drawImage(img, 0, 0, w, h);
+      canvas.width = img.width;
+      canvas.height = img.height;
+      ctx.drawImage(img, 0, 0);
 
-      ctx.font = `${Math.floor(w * 0.035)}px Arial`;
+      ctx.font = `${Math.floor(img.width * 0.035)}px Arial`;
       ctx.fillStyle = "white";
       ctx.strokeStyle = "black";
       ctx.lineWidth = 3;
       ctx.textBaseline = "bottom";
-      const m = 20;
+      const margin = 20;
 
-      ctx.strokeText(`Nama: ${namaPetugas}`, m, h - 3 * m);
-      ctx.fillText(`Nama: ${namaPetugas}`, m, h - 3 * m);
-      ctx.strokeText(`Perusahaan: ${perusahaanPetugas}`, m, h - 2 * m);
-      ctx.fillText(`Perusahaan: ${perusahaanPetugas}`, m, h - 2 * m);
-      ctx.strokeText(`Tanggal & Waktu: ${waktu}`, m, h - m);
-      ctx.fillText(`Tanggal & Waktu: ${waktu}`, m, h - m);
+      ctx.strokeText(`Nama: ${namaPetugas}`, margin, img.height - 3 * margin);
+      ctx.fillText(`Nama: ${namaPetugas}`, margin, img.height - 3 * margin);
+      ctx.strokeText(
+        `Perusahaan: ${perusahaanPetugas}`,
+        margin,
+        img.height - 2 * margin
+      );
+      ctx.fillText(
+        `Perusahaan: ${perusahaanPetugas}`,
+        margin,
+        img.height - 2 * margin
+      );
+      ctx.strokeText(`Tanggal & Waktu: ${waktu}`, margin, img.height - margin);
+      ctx.fillText(`Tanggal & Waktu: ${waktu}`, margin, img.height - margin);
 
-      resolve(canvas.toDataURL("image/jpeg", quality));
+      resolve(canvas.toDataURL("image/jpeg", 0.8));
     };
   });
 }

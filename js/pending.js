@@ -1,5 +1,5 @@
 const scriptURL =
-  "https://script.google.com/macros/s/AKfycbwtaAZo5vpN1ouMBGkWq7b673O5-wTCfcCf-ANtcBQ2IW3BMu6lDQORMIzP7527hG5wiQ/exec";
+  "https://script.google.com/macros/s/AKfycbx1r9XWC2Go7qgUU0f0A_0rmJ0EwziNpp3zFfk8apY7OOH76zLlPnSex2H5dK7oYWS_KA/exec";
 
 document.addEventListener("DOMContentLoaded", () => {
   renderPending();
@@ -45,7 +45,6 @@ function renderPending() {
       <td>
         <button class="btn btn-detail" onclick="lihatFoto(${i})">Lihat Foto</button>       
         <button class="btn btn-kirim" onclick="kirimData(${i}, this)">Kirim</button>
-
       </td>`;
     tbody.appendChild(tr);
   });
@@ -82,14 +81,14 @@ async function kirimData(index, el) {
   if (!confirm(`Kirim data patroli Area ${item.area}?`)) return;
 
   try {
-    // 👉 el adalah tombol yang ditekan, bukan semua tombol
     el.disabled = true;
     el.textContent = "Mengirim...";
     showLoading();
 
     const res = await fetch(scriptURL, {
       method: "POST",
-      body: new URLSearchParams({
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
         action: "patroliArea",
         nip: item.nip,
         nama: item.nama,
@@ -98,7 +97,7 @@ async function kirimData(index, el) {
         jam: item.jam,
         lokasi: item.lokasi,
         area: item.area,
-        foto: item.foto,
+        foto: item.foto, // base64 sekali encode
         keterangan: item.keterangan,
       }),
     });
@@ -112,7 +111,7 @@ async function kirimData(index, el) {
       renderPending();
       if (getPending().length === 0) showSuccessOverlay();
     } else {
-      alert("❌ Gagal mengirim data ke server.");
+      alert("❌ Gagal mengirim data ke server: " + result.message);
       el.disabled = false;
       el.textContent = "Kirim";
     }
@@ -122,13 +121,6 @@ async function kirimData(index, el) {
     el.disabled = false;
     el.textContent = "Kirim";
   }
-}
-
-function showSuccessOverlay() {
-  document.getElementById("successOverlay").style.display = "flex";
-}
-function closeOverlay() {
-  document.getElementById("successOverlay").style.display = "none";
 }
 
 // 🚀 Kirim Semua Data Sekaligus
@@ -150,10 +142,10 @@ async function kirimSemua() {
     showLoading();
     for (let i = 0; i < data.length; i++) {
       const item = data[i];
-
       const res = await fetch(scriptURL, {
         method: "POST",
-        body: new URLSearchParams({
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
           action: "patroliArea",
           nip: item.nip,
           nama: item.nama,
@@ -168,7 +160,6 @@ async function kirimSemua() {
       });
 
       const result = await res.json();
-
       if (result.status !== "success") {
         hideLoading();
         alert(`❌ Gagal kirim Area ${item.area}. Pengiriman dihentikan.`);
@@ -176,19 +167,25 @@ async function kirimSemua() {
       }
     }
 
-    // ✅ Semua sukses → hapus semua key
     for (let i = 1; i <= 5; i++) {
       localStorage.removeItem(`patroliArea${i}`);
     }
 
     renderPending();
-    hideLoading(); // ✅ Tutup overlay setelah semua selesai
-    showSuccessOverlay(); // ✅ Tampilkan notifikasi sukses
+    hideLoading();
+    showSuccessOverlay();
   } catch (err) {
     hideLoading();
     console.error(err);
     alert("❌ Terjadi kesalahan koneksi: " + err.message);
   }
+}
+
+function showSuccessOverlay() {
+  document.getElementById("successOverlay").style.display = "flex";
+}
+function closeOverlay() {
+  document.getElementById("successOverlay").style.display = "none";
 }
 
 function showLoading() {
