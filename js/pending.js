@@ -67,7 +67,7 @@ function lihatFoto(index) {
   `);
 }
 
-// 🚀 Kirim data ke Apps Script
+// 🚀 Kirim data satu per satu
 async function kirimData(index, el) {
   const data = getPending();
   const item = data[index];
@@ -87,9 +87,9 @@ async function kirimData(index, el) {
 
     await fetch(scriptURL, {
       method: "POST",
-      mode: "no-cors", // 🔑 bypass CORS
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
+      mode: "no-cors",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({
         action: "patroliArea",
         nip: item.nip,
         nama: item.nama,
@@ -104,8 +104,7 @@ async function kirimData(index, el) {
     });
 
     hideLoading();
-
-    // ✅ anggap sukses (karena no-cors tidak bisa baca response)
+    // ✅ Anggap sukses (no-cors tidak bisa baca response)
     localStorage.removeItem(`patroliArea${item.area}`);
     alert(`✅ Data Area ${item.area} berhasil dikirim!`);
     renderPending();
@@ -119,7 +118,7 @@ async function kirimData(index, el) {
   }
 }
 
-// 🚀 Kirim Semua Data Sekaligus
+// 🚀 Kirim semua data sekaligus
 async function kirimSemua() {
   const data = getPending();
   if (data.length === 0) {
@@ -138,12 +137,11 @@ async function kirimSemua() {
     showLoading();
     for (let i = 0; i < data.length; i++) {
       const item = data[i];
-
       await fetch(scriptURL, {
         method: "POST",
         mode: "no-cors",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({
           action: "patroliArea",
           nip: item.nip,
           nama: item.nama,
