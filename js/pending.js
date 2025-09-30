@@ -1,5 +1,5 @@
 const scriptURL =
-  "https://script.google.com/macros/s/AKfycbx1r9XWC2Go7qgUU0f0A_0rmJ0EwziNpp3zFfk8apY7OOH76zLlPnSex2H5dK7oYWS_KA/exec";
+  "https://script.google.com/macros/s/AKfycbyhCJ6nG86NmyYnl_mKrgIhnLGAizYnnTK3FRwVhKXwW-2IxF2O3XBllkZmHcJBX3ig5w/exec";
 
 document.addEventListener("DOMContentLoaded", () => {
   renderPending();
