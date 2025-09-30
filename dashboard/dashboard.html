@@ -5,6 +5,55 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Dashboard Giat Patroli</title>
     <link rel="stylesheet" href="dashboard.css" />
+    <style>
+      /* Tambahan untuk status online/offline */
+      .status {
+        display: inline-block;
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 0.9rem;
+        font-weight: 600;
+      }
+      .status.online {
+        background: #4caf50;
+        color: #fff;
+      }
+      .status.offline {
+        background: #b71c1c;
+        color: #fff;
+      }
+
+      /* Progress bar */
+      .progress-box {
+        width: 100%;
+        height: 16px;
+        background: #eee;
+        border-radius: 10px;
+        overflow: hidden;
+        margin: 10px 0;
+      }
+      .progress-bar {
+        height: 100%;
+        background: linear-gradient(90deg, #ff7043, #e53935);
+        width: 0;
+        transition: width 0.4s ease;
+      }
+
+      .card-patroli {
+        max-width: 400px;
+        margin: 20px auto;
+        padding: 16px;
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        text-align: center;
+      }
+
+      .patroli-status {
+        font-size: 0.9rem;
+        color: #444;
+      }
+    </style>
   </head>
   <body>
     <input type="hidden" id="nipHidden" />
@@ -18,7 +67,7 @@
           alt="Foto User"
           class="foto-user"
         />
-        <h1 class="app-title">GIAT PATROLI</h1>
+        <h1 class="app-title">GIAT SCURITY PATROLI</h1>
         <p id="infoUser">
           <span id="namaUser">Nama Security</span> |
           <span id="perusahaan">Perusahaan</span>
@@ -42,8 +91,18 @@
       </svg>
     </header>
 
-    <!-- ===== MENU ===== -->
-    <h2 class="menu-title">--Panel Patroli--</h2>
+    <!-- Card Patroli -->
+    <div class="card-patroli">
+      <h2>📍 Patroli Area</h2>
+      <div id="patroliProgress" class="progress-box">
+        <div class="progress-bar" id="progressBar"></div>
+      </div>
+      <p id="patroliStatus" class="patroli-status">
+        0 dari 5 patroli dilakukan.<br />
+        <small>⏳ Progress akan direset otomatis setiap 12 jam.</small>
+      </p>
+    </div>
+
     <main class="menu-container">
       <a href="../pages/form.html" class="menu-card">
         <div class="icon">🕵️‍♂️</div>
@@ -80,6 +139,7 @@
         new Date().getFullYear();
     </script>
 
+    <!-- Jam realtime -->
     <script>
       function updateDateTime() {
         const now = new Date();
@@ -100,15 +160,13 @@
       updateDateTime();
     </script>
 
-    <!-- Ambil data dari localStorage -->
+    <!-- Ambil data user -->
     <script>
       const userData = JSON.parse(localStorage.getItem("userData"));
-
       if (userData) {
         document.getElementById("nipHidden").value = userData.nip;
         document.getElementById("namaUser").textContent = userData.nama;
         document.getElementById("perusahaan").textContent = userData.perusahaan;
-
         if (userData.foto) {
           document.getElementById("fotoUser").src = userData.foto;
         }
@@ -116,6 +174,61 @@
         alert("⚠️ Silakan login terlebih dahulu.");
         window.location.href = "../login.html";
       }
+    </script>
+
+    <!-- Script Progress Patroli -->
+    <script>
+      const maxArea = 5;
+      function updatePatroliStatus() {
+        const progress = JSON.parse(
+          localStorage.getItem("patroliProgress") || "{}"
+        );
+        const now = Date.now();
+
+        let areaNow = progress.currentArea || 1;
+        let startTime = progress.startTime || now;
+
+        // ✅ Reset otomatis setelah 12 jam dari absen terakhir
+        if (now - startTime > 12 * 60 * 60 * 1000) {
+          localStorage.removeItem("patroliProgress");
+          areaNow = 1;
+          startTime = now;
+          localStorage.setItem(
+            "patroliProgress",
+            JSON.stringify({ currentArea: areaNow, startTime })
+          );
+        }
+
+        const areaDone = areaNow > 1 ? areaNow - 1 : 0;
+        const progressPercent = Math.min((areaDone / maxArea) * 100, 100);
+
+        document.getElementById("progressBar").style.width =
+          progressPercent + "%";
+
+        document.getElementById("patroliStatus").innerHTML =
+          `${areaDone} dari ${maxArea} patroli dilakukan.<br>` +
+          `<small>⏳ Progress akan direset otomatis 12 jam setelah absen terakhir.</small>`;
+      }
+      document.addEventListener("DOMContentLoaded", updatePatroliStatus);
+    </script>
+
+    <!-- Status Online -->
+    <script>
+      function updateOnlineStatus() {
+        const el = document.getElementById("statusOnline");
+        if (navigator.onLine) {
+          el.textContent = "Online";
+          el.classList.remove("offline");
+          el.classList.add("online");
+        } else {
+          el.textContent = "Offline";
+          el.classList.remove("online");
+          el.classList.add("offline");
+        }
+      }
+      updateOnlineStatus();
+      window.addEventListener("online", updateOnlineStatus);
+      window.addEventListener("offline", updateOnlineStatus);
     </script>
 
     <!-- <script src="dashboard.js"></script> -->
