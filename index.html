@@ -49,19 +49,17 @@
       const installBtn = document.getElementById("installBtn");
 
       window.addEventListener("beforeinstallprompt", (e) => {
-        // Simpan event dan tampilkan tombol
         deferredPrompt = e;
         installBtn.hidden = false;
 
         installBtn.addEventListener("click", () => {
           installBtn.disabled = true;
           deferredPrompt.prompt();
-
           deferredPrompt.userChoice.then((choice) => {
             if (choice.outcome === "accepted") {
               console.log("✅ Pengguna menginstal aplikasi");
             } else {
-              console.log("❌ Pengguna membatalkan instalasi");
+              console.log("❌ Pengguna batal instalasi");
             }
             deferredPrompt = null;
           });
@@ -75,6 +73,26 @@
         navigator.serviceWorker
           .register("service-worker.js")
           .then((reg) => console.log("✅ SW terdaftar:", reg.scope))
+          .catch((err) => console.error("❌ SW gagal:", err));
+      }
+    </script>
+
+    <script>
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker
+          .register("service-worker.js")
+          .then((reg) => {
+            console.log("✅ SW terdaftar:", reg.scope);
+
+            // 🔥 Dengarkan pesan dari SW
+            navigator.serviceWorker.addEventListener("message", (event) => {
+              if (event.data.type === "UPDATE_READY") {
+                if (confirm("⚡ Versi baru tersedia. Muat ulang sekarang?")) {
+                  window.location.reload();
+                }
+              }
+            });
+          })
           .catch((err) => console.error("❌ SW gagal:", err));
       }
     </script>
