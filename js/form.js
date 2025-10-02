@@ -230,7 +230,8 @@ function simpanArea() {
       "patroliProgress",
       JSON.stringify({
         currentArea: nextArea,
-        startTime: progress.startTime || Date.now(),
+        // startTime: progress.startTime || Date.now(),
+        startTime:Date.now(),// reset 12 jam setelah absen terakhir
       })
     );
   } else {
