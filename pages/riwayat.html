@@ -214,6 +214,7 @@
         <td>${r.jam}</td>
         <td>${r.lokasi}</td>
         <td>${r.area}</td>
+        <td>${r.keterangan || "-"}</td>
         <td><img src="${
           r.foto
         }" style="max-width:80px;max-height:60px;border-radius:6px;cursor:pointer"
@@ -236,14 +237,19 @@
     <script>
       // 🔥 Helper: konversi URL → Base64 biar bisa dipakai jsPDF
       async function toBase64(url) {
-        const res = await fetch(url, { mode: "cors" }); // ambil blob
-        const blob = await res.blob();
-        return new Promise((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onloadend = () => resolve(reader.result);
-          reader.onerror = reject;
-          reader.readAsDataURL(blob);
-        });
+        try {
+          const res = await fetch(url, { mode: "cors" });
+          const blob = await res.blob();
+          return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result);
+            reader.onerror = reject;
+            reader.readAsDataURL(blob);
+          });
+        } catch (e) {
+          console.warn("⚠️ Gagal load gambar:", url, e);
+          return null;
+        }
       }
 
       window.exportPDFwithThumb = async function exportPDFwithThumb() {
@@ -269,12 +275,13 @@
             tds[2].innerText.trim(),
             tds[3].innerText.trim(),
             tds[4].innerText.trim(),
-            "", // kolom foto → isi manual dengan addImage
+            tds[5].innerText.trim(),
+            "", // kolom foto → isi manual
           ];
           tableRows.push(rowData);
 
-          // Simpan URL gambar dari kolom foto
-          const imgEl = tds[5].querySelector("img");
+          // Simpan URL gambar
+          const imgEl = tds[6].querySelector("img");
           fotoList.push(imgEl ? imgEl.src : null);
         });
 
@@ -283,11 +290,40 @@
           return;
         }
 
+        // 🔥 Tampilkan loading overlay
+        document.getElementById("loadingOverlay").style.display = "flex";
+
+        // ✅ Preload semua foto jadi Base64
+        const base64List = [];
+        for (let i = 0; i < fotoList.length; i++) {
+          if (fotoList[i]) {
+            base64List[i] = await toBase64(fotoList[i]);
+          } else {
+            base64List[i] = null;
+          }
+        }
+
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF("p", "pt", "a4");
 
         // 🔥 Header PDF
-        const title = `Laporan Patroli - ${bulan}/${tahun}`;
+        const bulanList = [
+          "Januari",
+          "Februari",
+          "Maret",
+          "April",
+          "Mei",
+          "Juni",
+          "Juli",
+          "Agustus",
+          "September",
+          "Oktober",
+          "November",
+          "Desember",
+        ];
+        const bulanNama = bulanList[parseInt(bulan) - 1];
+        const title = `Laporan Patroli - ${bulanNama} ${tahun}`;
+
         doc.setFontSize(14);
         doc.text(title, 40, 40);
         doc.setFontSize(10);
@@ -298,33 +334,29 @@
         ].map((th) => th.innerText);
 
         // 🔥 Buat tabel
-        await doc.autoTable({
+        doc.autoTable({
           startY: 80,
           head: [headers],
           body: tableRows,
-          didDrawCell: async (data) => {
+          didDrawCell: (data) => {
             // sisipkan foto di kolom ke-6
-            if (data.section === "body" && data.column.index === 5) {
-              const imgSrc = fotoList[data.row.index];
-              if (imgSrc) {
-                try {
-                  const base64Img = await toBase64(imgSrc);
-                  const dim = 30; // ukuran thumbnail
-                  const xPos = data.cell.x + (data.cell.width - dim) / 2;
-                  const yPos = data.cell.y + 2;
-                  doc.addImage(base64Img, "JPEG", xPos, yPos, dim, dim);
-                } catch (e) {
-                  console.warn("⚠️ Gagal load gambar:", e);
-                }
+            if (data.section === "body" && data.column.index === 6) {
+              const base64Img = base64List[data.row.index];
+              if (base64Img) {
+                const dim = 30;
+                const xPos = data.cell.x + (data.cell.width - dim) / 2;
+                const yPos = data.cell.y + 2;
+                doc.addImage(base64Img, "JPEG", xPos, yPos, dim, dim);
               }
             }
           },
           styles: { fontSize: 9, cellPadding: 3, minCellHeight: 34 },
           headStyles: { fillColor: [255, 224, 224], textColor: [183, 28, 28] },
-          columnStyles: { 5: { cellWidth: 50 } }, // kolom foto
+          columnStyles: { 6: { cellWidth: 50 } },
         });
 
-        // 🔥 Simpan PDF
+        // 🔥 Sembunyikan overlay & simpan PDF
+        document.getElementById("loadingOverlay").style.display = "none";
         doc.save(`Laporan-Patroli-${bulan}-${tahun}-foto.pdf`);
       };
     </script>
