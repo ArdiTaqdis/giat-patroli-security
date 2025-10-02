@@ -53,6 +53,12 @@
         font-size: 0.9rem;
         color: #444;
       }
+
+      .menu-card.disabled {
+        pointer-events: none; /* ✅ tidak bisa diklik */
+        opacity: 0.6; /* ✅ tampil lebih redup */
+        cursor: not-allowed;
+      }
     </style>
   </head>
   <body>
@@ -116,18 +122,22 @@
         <div class="icon">📅</div>
         <p>Laporan Patroli</p>
       </a>
-      <a href="panduan.html" class="menu-card">
-        <div class="icon">📚</div>
-        <p>Cara Penggunaan</p>
-      </a>
-      <a href="#" class="menu-card" onclick="showNotifikasi()">
+      <a href="javascript:void(0)" class="menu-card disabled">
         <div class="icon">🔔</div>
         <p>Notifikasi</p>
+        <small style="color: #b71c1c; display: block"
+          >Sedang dalam pengembangan</small
+        >
       </a>
-      <a href="pengaturan.html" class="menu-card">
+      <!-- <a href="panduan.html" class="menu-card">
+        <div class="icon">📚</div>
+        <p>Cara Penggunaan</p>
+      </a> -->
+
+      <!-- <a href="pengaturan.html" class="menu-card">
         <div class="icon">⚙️</div>
         <p>Pengaturan</p>
-      </a>
+      </a> -->
     </main>
 
     <footer class="footer">

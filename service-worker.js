@@ -1,61 +1,86 @@
 // Nama cache baru → ubah versi jika update file agar refresh otomatis
-const CACHE_NAME = "patroli-v2";
+const CACHE_NAME = "patroli-v4";
 
-// Daftar file yang WAJIB dicache agar PWA tetap jalan offline
+// Daftar file statis yang wajib dicache
 const urlsToCache = [
+  "/",
   "/index.html",
   "/dashboard.html",
   "/form.html",
   "/pending.html",
   "/riwayat.html",
   "/style/style.css",
+  "/style/loading.css",
+  "/style/table-page.css",
   "/js/form.js",
   "/js/pending.js",
+  "/js/utils.js",
   "/icon-192.png",
   "/icon-512.png",
+  "/offline.html", // ✅ fallback page
 ];
 
-// INSTALL: Cache semua file statis
+// INSTALL → cache semua file statis
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => cache.addAll(urlsToCache))
   );
-  self.skipWaiting(); // langsung aktif
+  self.skipWaiting();
 });
 
-// ACTIVATE: Hapus cache lama jika versi berubah
+// ACTIVATE → hapus cache lama jika versi berubah
 self.addEventListener("activate", (event) => {
   event.waitUntil(
-    caches
-      .keys()
-      .then((keyList) =>
-        Promise.all(
-          keyList.map((key) => {
-            if (key !== CACHE_NAME) return caches.delete(key);
-          })
-        )
+    caches.keys().then((keyList) =>
+      Promise.all(
+        keyList.map((key) => {
+          if (key !== CACHE_NAME) {
+            return caches.delete(key);
+          }
+        })
       )
-      .then(() => self.clients.claim())
+    )
   );
+  self.clients.claim();
 });
 
-// FETCH: Strategi cache-first, fallback ke network
+// FETCH
 self.addEventListener("fetch", (event) => {
   const request = event.request;
 
-  // Abaikan permintaan ke Google Apps Script (API backend) → selalu ambil dari network
+  // Abaikan request ke Google Apps Script (API backend)
   if (request.url.includes("script.google.com")) {
-    return; // biarkan browser fetch normal
+    return;
   }
 
+  // Jika request adalah HTML → pakai strategi network-first
+  if (request.headers.get("accept")?.includes("text/html")) {
+    event.respondWith(
+      fetch(request)
+        .then((response) => {
+          const copy = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
+          return response;
+        })
+        .catch(() =>
+          caches.match(request).then(
+            (resp) => resp || caches.match("/offline.html") // ✅ fallback offline
+          )
+        )
+    );
+    return;
+  }
+
+  // Untuk asset (CSS, JS, Icon) → pakai strategi cache-first
   event.respondWith(
     caches.match(request).then(
       (response) =>
         response ||
-        fetch(request).catch(() =>
-          // fallback opsional: jika offline dan file tidak ada di cache
-          caches.match("/index.html")
-        )
+        fetch(request).then((resp) => {
+          const copy = resp.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
+          return resp;
+        })
     )
   );
 });
