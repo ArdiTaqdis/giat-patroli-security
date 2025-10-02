@@ -1,79 +1,82 @@
 <!DOCTYPE html>
 <html lang="id">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Giat Patroli</title>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Giat Patroli</title>
 
-  <!-- Manifest & Icon -->
-  <link rel="manifest" href="manifest.json" />
-  <link rel="icon" href="icon-192.png" type="image/png" />
-  <meta name="theme-color" content="#2196f3" />
+    <!-- Manifest & Icon -->
+    <link rel="manifest" href="manifest.json" />
+    <link rel="icon" href="icon-192.png" type="image/png" />
+    <meta name="theme-color" content="#2196f3" />
 
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      text-align: center;
-      padding: 40px;
-      background: #e3f2fd;
-    }
-    h1 { color: #2196f3; }
-    button {
-      padding: 10px 20px;
-      background: #2196f3;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      font-size: 16px;
-      cursor: pointer;
-    }
-    button:disabled {
-      background: #ccc;
-    }
-  </style>
-</head>
-<body>
-  <h1>🚓 Giat Patroli Security</h1>
-  <p>Selamat datang! Anda bisa menginstal aplikasi ini di layar utama.</p>
-  <button id="installBtn" hidden>⬇️ Install Aplikasi</button>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        text-align: center;
+        padding: 40px;
+        background: #e3f2fd;
+      }
+      h1 {
+        color: #f35d21;
+      }
+      button {
+        padding: 10px 20px;
+        background: #e53935;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 16px;
+        cursor: pointer;
+      }
+      button:disabled {
+        background: #ccc;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>🚓 Giat Patroli Security</h1>
+    <p>Selamat datang! Anda bisa menginstal aplikasi ini di layar utama.</p>
+    <button id="installBtn" hidden>⬇️ Install Aplikasi</button>
 
-  <br><br>
-  <a href="login.html">
-    <button>➡️ Masuk ke Aplikasi</button>
-  </a>
+    <br /><br />
+    <a href="login.html">
+      <button>➡️ Masuk ke Aplikasi</button>
+    </a>
 
-  <script>
-    let deferredPrompt;
-    const installBtn = document.getElementById("installBtn");
+    <script>
+      let deferredPrompt;
+      const installBtn = document.getElementById("installBtn");
 
-    window.addEventListener('beforeinstallprompt', (e) => {
-      // Simpan event dan tampilkan tombol
-      deferredPrompt = e;
-      installBtn.hidden = false;
+      window.addEventListener("beforeinstallprompt", (e) => {
+        // Simpan event dan tampilkan tombol
+        deferredPrompt = e;
+        installBtn.hidden = false;
 
-      installBtn.addEventListener('click', () => {
-        installBtn.disabled = true;
-        deferredPrompt.prompt();
+        installBtn.addEventListener("click", () => {
+          installBtn.disabled = true;
+          deferredPrompt.prompt();
 
-        deferredPrompt.userChoice.then(choice => {
-          if (choice.outcome === 'accepted') {
-            console.log('✅ Pengguna menginstal aplikasi');
-          } else {
-            console.log('❌ Pengguna membatalkan instalasi');
-          }
-          deferredPrompt = null;
+          deferredPrompt.userChoice.then((choice) => {
+            if (choice.outcome === "accepted") {
+              console.log("✅ Pengguna menginstal aplikasi");
+            } else {
+              console.log("❌ Pengguna membatalkan instalasi");
+            }
+            deferredPrompt = null;
+          });
         });
       });
-    });
-  </script>
+    </script>
 
-  <!-- Service Worker -->
-  <script>
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('service-worker.js')
-        .then(reg => console.log('✅ SW terdaftar:', reg.scope))
-        .catch(err => console.error('❌ SW gagal:', err));
-    }
-  </script>
-</body>
+    <!-- Service Worker -->
+    <script>
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker
+          .register("service-worker.js")
+          .then((reg) => console.log("✅ SW terdaftar:", reg.scope))
+          .catch((err) => console.error("❌ SW gagal:", err));
+      }
+    </script>
+  </body>
 </html>

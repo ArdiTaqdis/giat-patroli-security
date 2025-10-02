@@ -72,6 +72,7 @@
           src="https://cdn-icons-png.flaticon.com/512/149/149071.png"
           alt="Foto User"
           class="foto-user"
+          onerror="this.src='https://cdn-icons-png.flaticon.com/512/149/149071.png'"
         />
         <h1 class="app-title">GIAT SCURITY PATROLI</h1>
         <p id="infoUser">
@@ -79,8 +80,16 @@
           <span id="perusahaan">Perusahaan</span>
         </p>
 
+        <!-- ✅ Greeting personal -->
+        <p
+          id="greeting"
+          style="margin: 5px 0; font-weight: bold; color: #444"
+        ></p>
+
         <span id="statusOnline" class="status offline">Offline</span>
         <div id="dateTime" class="datetime">--/--/---- --:--:--</div>
+
+        <!-- ✅ Tombol Logout -->
       </div>
 
       <!-- Lengkungan Bawah -->
@@ -129,17 +138,23 @@
           >Sedang dalam pengembangan</small
         >
       </a>
-      <!-- <a href="panduan.html" class="menu-card">
-        <div class="icon">📚</div>
-        <p>Cara Penggunaan</p>
-      </a> -->
-
-      <!-- <a href="pengaturan.html" class="menu-card">
-        <div class="icon">⚙️</div>
-        <p>Pengaturan</p>
-      </a> -->
     </main>
 
+    <button
+      onclick="logout()"
+      style="
+        margin-top: 10px;
+        padding: 6px 12px;
+        border: none;
+        border-radius: 8px;
+        background: #b71c1c;
+        color: #fff;
+        font-weight: bold;
+        cursor: pointer;
+      "
+    >
+      🚪 Logout
+    </button>
     <footer class="footer">
       <p>&copy; 2025 GIAT PATROLI • <span id="tahunSekarang"></span></p>
     </footer>
@@ -180,8 +195,18 @@
         if (userData.foto) {
           document.getElementById("fotoUser").src = userData.foto;
         }
+
+        // ✅ Greeting personal
+        document.getElementById("greeting").textContent =
+          "👋 Selamat datang, " + userData.nama + "!";
       } else {
         alert("⚠️ Silakan login terlebih dahulu.");
+        window.location.href = "../login.html";
+      }
+
+      // ✅ Fungsi Logout
+      function logout() {
+        localStorage.removeItem("userData");
         window.location.href = "../login.html";
       }
     </script>
