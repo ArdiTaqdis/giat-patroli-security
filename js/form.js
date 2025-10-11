@@ -219,6 +219,7 @@ function simpanArea() {
     localStorage.setItem(
       `patroliArea${areaNow}`,
       JSON.stringify({
+<<<<<<< HEAD
         nip,
         nama,
         perusahaan,
@@ -231,6 +232,11 @@ function simpanArea() {
         keterangan: ket,
         status,
         timestamp: new Date().toISOString(),
+=======
+        currentArea: nextArea,
+        // startTime: progress.startTime || Date.now(),
+        startTime:Date.now(),// reset 12 jam setelah absen terakhir
+>>>>>>> d116ae6fad36c7873ab10e5bc6e8df9677b169a8
       })
     );
 

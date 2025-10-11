@@ -53,6 +53,12 @@
         font-size: 0.9rem;
         color: #444;
       }
+
+      .menu-card.disabled {
+        pointer-events: none; /* ✅ tidak bisa diklik */
+        opacity: 0.6; /* ✅ tampil lebih redup */
+        cursor: not-allowed;
+      }
     </style>
   </head>
   <body>
@@ -63,9 +69,16 @@
       <div class="profile">
         <img
           id="fotoUser"
+<<<<<<< HEAD
           src="../assets/default-avatar.png"
           class="img-circle elevation-2"
           alt="User Image"
+=======
+          src="https://cdn-icons-png.flaticon.com/512/149/149071.png"
+          alt="Foto User"
+          class="foto-user"
+          onerror="this.src='https://cdn-icons-png.flaticon.com/512/149/149071.png'"
+>>>>>>> d116ae6fad36c7873ab10e5bc6e8df9677b169a8
         />
 
         <h1 class="app-title">GIAT SCURITY PATROLI</h1>
@@ -74,8 +87,16 @@
           <span id="perusahaan">Perusahaan</span>
         </p>
 
+        <!-- ✅ Greeting personal -->
+        <p
+          id="greeting"
+          style="margin: 5px 0; font-weight: bold; color: #444"
+        ></p>
+
         <span id="statusOnline" class="status offline">Offline</span>
         <div id="dateTime" class="datetime">--/--/---- --:--:--</div>
+
+        <!-- ✅ Tombol Logout -->
       </div>
 
       <!-- Lengkungan Bawah -->
@@ -117,6 +138,7 @@
       <!-- <a href="../pages/riwayat.html" class="menu-card">
         <div class="icon">📅</div>
         <p>Laporan Patroli</p>
+<<<<<<< HEAD
       </a> -->
       <a href="panduan.html" class="menu-card">
         <div class="icon">📚</div>
@@ -130,12 +152,37 @@
         <div class="icon">⚙️</div>
         <p>Pengaturan</p>
       </a> -->
+=======
+      </a>
+      <a href="javascript:void(0)" class="menu-card disabled">
+        <div class="icon">🔔</div>
+        <p>Notifikasi</p>
+        <small style="color: #b71c1c; display: block"
+          >Sedang dalam pengembangan</small
+        >
+      </a>
+>>>>>>> d116ae6fad36c7873ab10e5bc6e8df9677b169a8
     </main>
     <a href="#" class="menu-card" onclick="logoutUser()">
       <div class="icon">🚪</div>
       <p>Logout</p>
     </a>
 
+    <button
+      onclick="logout()"
+      style="
+        margin-top: 10px;
+        padding: 6px 12px;
+        border: none;
+        border-radius: 8px;
+        background: #b71c1c;
+        color: #fff;
+        font-weight: bold;
+        cursor: pointer;
+      "
+    >
+      🚪 Logout
+    </button>
     <footer class="footer">
       <p>&copy; 2025 GIAT PATROLI • <span id="tahunSekarang"></span></p>
     </footer>
@@ -193,8 +240,18 @@
         } else {
           fotoUser.src = "../assets/default-avatar.png";
         }
+
+        // ✅ Greeting personal
+        document.getElementById("greeting").textContent =
+          "👋 Selamat datang, " + userData.nama + "!";
       } else {
         alert("⚠️ Silakan login terlebih dahulu.");
+        window.location.href = "../login.html";
+      }
+
+      // ✅ Fungsi Logout
+      function logout() {
+        localStorage.removeItem("userData");
         window.location.href = "../login.html";
       }
     </script>

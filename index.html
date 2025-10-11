@@ -18,11 +18,19 @@
         background: #e3f2fd;
       }
       h1 {
+<<<<<<< HEAD
         color: #2196f3;
       }
       button {
         padding: 10px 20px;
         background: #2196f3;
+=======
+        color: #f35d21;
+      }
+      button {
+        padding: 10px 20px;
+        background: #e53935;
+>>>>>>> d116ae6fad36c7873ab10e5bc6e8df9677b169a8
         color: white;
         border: none;
         border-radius: 8px;
@@ -39,29 +47,46 @@
     <p>Selamat datang! Anda bisa menginstal aplikasi ini di layar utama.</p>
     <button id="installBtn" hidden>⬇️ Install Aplikasi</button>
 
+<<<<<<< HEAD
     <br /><br />
     <a href="login.html">
       <button>➡️ Masuk ke Aplikasi</button>
     </a>
+=======
+    <!-- <br /><br />
+    <a href="login.html">
+      <button> Masuk ke Aplikasi</button>
+    </a> -->
+>>>>>>> d116ae6fad36c7873ab10e5bc6e8df9677b169a8
 
     <script>
       let deferredPrompt;
       const installBtn = document.getElementById("installBtn");
 
       window.addEventListener("beforeinstallprompt", (e) => {
+<<<<<<< HEAD
         // Simpan event dan tampilkan tombol
+=======
+>>>>>>> d116ae6fad36c7873ab10e5bc6e8df9677b169a8
         deferredPrompt = e;
         installBtn.hidden = false;
 
         installBtn.addEventListener("click", () => {
           installBtn.disabled = true;
           deferredPrompt.prompt();
+<<<<<<< HEAD
 
+=======
+>>>>>>> d116ae6fad36c7873ab10e5bc6e8df9677b169a8
           deferredPrompt.userChoice.then((choice) => {
             if (choice.outcome === "accepted") {
               console.log("✅ Pengguna menginstal aplikasi");
             } else {
+<<<<<<< HEAD
               console.log("❌ Pengguna membatalkan instalasi");
+=======
+              console.log("❌ Pengguna batal instalasi");
+>>>>>>> d116ae6fad36c7873ab10e5bc6e8df9677b169a8
             }
             deferredPrompt = null;
           });
@@ -69,6 +94,7 @@
       });
     </script>
 
+<<<<<<< HEAD
     <script>
       if ("serviceWorker" in navigator) {
         navigator.serviceWorker
@@ -112,6 +138,8 @@
       }
     </script>
 
+=======
+>>>>>>> d116ae6fad36c7873ab10e5bc6e8df9677b169a8
     <!-- Service Worker -->
     <script>
       if ("serviceWorker" in navigator) {
@@ -121,5 +149,28 @@
           .catch((err) => console.error("❌ SW gagal:", err));
       }
     </script>
+<<<<<<< HEAD
+=======
+
+    <script>
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker
+          .register("service-worker.js")
+          .then((reg) => {
+            console.log("✅ SW terdaftar:", reg.scope);
+
+            // 🔥 Dengarkan pesan dari SW
+            navigator.serviceWorker.addEventListener("message", (event) => {
+              if (event.data.type === "UPDATE_READY") {
+                if (confirm("⚡ Versi baru tersedia. Muat ulang sekarang?")) {
+                  window.location.reload();
+                }
+              }
+            });
+          })
+          .catch((err) => console.error("❌ SW gagal:", err));
+      }
+    </script>
+>>>>>>> d116ae6fad36c7873ab10e5bc6e8df9677b169a8
   </body>
 </html>

@@ -142,5 +142,12 @@
           }
         });
     </script>
+    <script>
+      // ✅ Kalau sudah login sebelumnya, langsung redirect ke dashboard
+      const savedUser = JSON.parse(localStorage.getItem("userData") || "{}");
+      if (savedUser.nip) {
+        window.location.href = "dashboard/dashboard.html";
+      }
+    </script>
   </body>
 </html>
