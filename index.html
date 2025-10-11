@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Giat Patroli</title>
 
-    <!-- Manifest & Icon -->
+    <!-- 🧩 Manifest & Icon -->
     <link rel="manifest" href="manifest.json" />
     <link rel="icon" href="icon-192.png" type="image/png" />
     <meta name="theme-color" content="#2196f3" />
@@ -18,75 +18,65 @@
         background: #e3f2fd;
       }
       h1 {
-<<<<<<< HEAD
         color: #2196f3;
       }
       button {
         padding: 10px 20px;
         background: #2196f3;
-=======
-        color: #f35d21;
-      }
-      button {
-        padding: 10px 20px;
-        background: #e53935;
->>>>>>> d116ae6fad36c7873ab10e5bc6e8df9677b169a8
         color: white;
         border: none;
         border-radius: 8px;
         font-size: 16px;
         cursor: pointer;
+        transition: 0.3s;
+      }
+      button:hover {
+        background: #1976d2;
       }
       button:disabled {
         background: #ccc;
       }
+      .info {
+        margin-top: 10px;
+        font-size: 0.9rem;
+        color: #444;
+      }
     </style>
   </head>
+
   <body>
     <h1>🚓 Giat Patroli Security</h1>
     <p>Selamat datang! Anda bisa menginstal aplikasi ini di layar utama.</p>
-    <button id="installBtn" hidden>⬇️ Install Aplikasi</button>
 
-<<<<<<< HEAD
+    <button id="installBtn" hidden>⬇️ Install Aplikasi</button>
     <br /><br />
     <a href="login.html">
       <button>➡️ Masuk ke Aplikasi</button>
     </a>
-=======
-    <!-- <br /><br />
-    <a href="login.html">
-      <button> Masuk ke Aplikasi</button>
-    </a> -->
->>>>>>> d116ae6fad36c7873ab10e5bc6e8df9677b169a8
 
+    <div class="info" id="updateInfo"></div>
+
+    <!-- =================================== -->
+    <!-- 🧩 PWA INSTALL HANDLER -->
+    <!-- =================================== -->
     <script>
       let deferredPrompt;
       const installBtn = document.getElementById("installBtn");
 
       window.addEventListener("beforeinstallprompt", (e) => {
-<<<<<<< HEAD
-        // Simpan event dan tampilkan tombol
-=======
->>>>>>> d116ae6fad36c7873ab10e5bc6e8df9677b169a8
+        e.preventDefault();
         deferredPrompt = e;
         installBtn.hidden = false;
 
         installBtn.addEventListener("click", () => {
           installBtn.disabled = true;
           deferredPrompt.prompt();
-<<<<<<< HEAD
 
-=======
->>>>>>> d116ae6fad36c7873ab10e5bc6e8df9677b169a8
           deferredPrompt.userChoice.then((choice) => {
             if (choice.outcome === "accepted") {
               console.log("✅ Pengguna menginstal aplikasi");
             } else {
-<<<<<<< HEAD
-              console.log("❌ Pengguna membatalkan instalasi");
-=======
               console.log("❌ Pengguna batal instalasi");
->>>>>>> d116ae6fad36c7873ab10e5bc6e8df9677b169a8
             }
             deferredPrompt = null;
           });
@@ -94,7 +84,9 @@
       });
     </script>
 
-<<<<<<< HEAD
+    <!-- =================================== -->
+    <!-- 🧩 SERVICE WORKER REGISTRATION -->
+    <!-- =================================== -->
     <script>
       if ("serviceWorker" in navigator) {
         navigator.serviceWorker
@@ -102,7 +94,7 @@
           .then((reg) => {
             console.log("✅ Service Worker terdaftar:", reg.scope);
 
-            // 🔁 Cek update otomatis
+            // 🔁 Deteksi versi baru
             reg.addEventListener("updatefound", () => {
               const newSW = reg.installing;
               newSW.addEventListener("statechange", () => {
@@ -123,54 +115,23 @@
               });
             });
 
-            // 💡 Dapat notifikasi dari SW baru
+            // 💡 Dapat pesan update dari SW
             navigator.serviceWorker.addEventListener("message", (event) => {
-              if (event.data?.type === "NEW_VERSION_AVAILABLE") {
-                if (
-                  confirm("🚀 Aplikasi telah diperbarui. Muat ulang sekarang?")
-                ) {
-                  window.location.reload();
-                }
+              if (
+                event.data?.type === "UPDATE_READY" ||
+                event.data?.type === "NEW_VERSION_AVAILABLE"
+              ) {
+                const info = document.getElementById("updateInfo");
+                info.innerHTML =
+                  "🚀 Versi baru aplikasi tersedia — klik untuk muat ulang.";
+                info.style.color = "#2e7d32";
+                info.style.cursor = "pointer";
+                info.onclick = () => window.location.reload();
               }
             });
           })
           .catch((err) => console.error("❌ Gagal register SW:", err));
       }
     </script>
-
-=======
->>>>>>> d116ae6fad36c7873ab10e5bc6e8df9677b169a8
-    <!-- Service Worker -->
-    <script>
-      if ("serviceWorker" in navigator) {
-        navigator.serviceWorker
-          .register("service-worker.js")
-          .then((reg) => console.log("✅ SW terdaftar:", reg.scope))
-          .catch((err) => console.error("❌ SW gagal:", err));
-      }
-    </script>
-<<<<<<< HEAD
-=======
-
-    <script>
-      if ("serviceWorker" in navigator) {
-        navigator.serviceWorker
-          .register("service-worker.js")
-          .then((reg) => {
-            console.log("✅ SW terdaftar:", reg.scope);
-
-            // 🔥 Dengarkan pesan dari SW
-            navigator.serviceWorker.addEventListener("message", (event) => {
-              if (event.data.type === "UPDATE_READY") {
-                if (confirm("⚡ Versi baru tersedia. Muat ulang sekarang?")) {
-                  window.location.reload();
-                }
-              }
-            });
-          })
-          .catch((err) => console.error("❌ SW gagal:", err));
-      }
-    </script>
->>>>>>> d116ae6fad36c7873ab10e5bc6e8df9677b169a8
   </body>
 </html>

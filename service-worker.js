@@ -1,42 +1,21 @@
-<<<<<<< HEAD
 // ===============================
-// 🚀 GIAT PATROLI SERVICE WORKER
+// 🚀 GIAT PATROLI SERVICE WORKER (FINAL CLEAN MERGE)
 // ===============================
 
-// 🧩 Ganti versi ini setiap kali update file, supaya cache auto refresh
-const CACHE_NAME = "patroli-v4.1";
-
-// 🧩 File yang wajib dicache untuk offline mode
-const urlsToCache = [
-  "./index.html",
-  "./login.html",
-  "./dashboard/dashboard.html",
-  "./pages/form.html",
-  "./pages/pending.html",
-  "./pages/jadwalpatroli.html",
-  "./style/style.css",
-  "./js/form.js",
-  "./js/pending.js",
-  "./icon-192.png",
-  "./icon-512.png",
-];
-
-// ===============
-// 📦 INSTALL
-// ===============
-=======
-// 🔑 Ambil base URL otomatis biar aman di root / subfolder
+// 🔑 Ambil base URL otomatis agar aman di root / subfolder
 const BASE_URL = self.registration.scope;
 
-const CACHE_NAME = "patroli-dynamic-v4"; // ⬅️ Ganti versi di sini kalau ada update
+// 🧩 Ganti versi cache setiap kali update file agar auto refresh
+const CACHE_NAME = "patroli-v5.11";
 
-// Semua halaman inti + asset penting
+// ✅ Daftar file penting untuk offline mode
 const STATIC_FILES = [
   "index.html",
   "login.html",
   "dashboard/dashboard.html",
   "pages/form.html",
   "pages/pending.html",
+  "pages/jadwalpatroli.html",
   "pages/riwayat.html",
   "pages/settings.html",
   "pages/panduan.html",
@@ -57,17 +36,17 @@ const STATIC_FILES = [
   "icon-512.png",
 ];
 
-// Tambahkan base url ke semua path
+// Tambahkan BASE_URL agar tetap valid di hosting subfolder
 const STATIC_ASSETS = STATIC_FILES.map((f) => new URL(f, BASE_URL).toString());
 
-// ✅ Install: cache semua file inti
->>>>>>> d116ae6fad36c7873ab10e5bc6e8df9677b169a8
+// ===============================
+// 📦 INSTALL — cache semua file statis
+// ===============================
 self.addEventListener("install", (event) => {
   console.log("📦 SW: Install event — caching static files...");
   event.waitUntil(
-<<<<<<< HEAD
     caches.open(CACHE_NAME).then(async (cache) => {
-      for (let url of urlsToCache) {
+      for (const url of STATIC_ASSETS) {
         try {
           await cache.add(url);
           console.log("✅ Cached:", url);
@@ -77,20 +56,12 @@ self.addEventListener("install", (event) => {
       }
     })
   );
-  self.skipWaiting(); // 🔁 Langsung aktif
+  self.skipWaiting(); // langsung aktif
 });
 
-// ===============
-// 🧹 ACTIVATE
-// ===============
-=======
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(STATIC_ASSETS))
-  );
-  self.skipWaiting();
-});
-
-// ✅ Activate: hapus cache lama & notif update
->>>>>>> d116ae6fad36c7873ab10e5bc6e8df9677b169a8
+// ===============================
+// ♻️ ACTIVATE — hapus cache lama & klaim client
+// ===============================
 self.addEventListener("activate", (event) => {
   console.log("♻️ SW: Activate — membersihkan cache lama...");
   event.waitUntil(
@@ -98,60 +69,25 @@ self.addEventListener("activate", (event) => {
       Promise.all(
         keys.map((key) => {
           if (key !== CACHE_NAME) {
-<<<<<<< HEAD
             console.log("🗑️ Hapus cache lama:", key);
-=======
->>>>>>> d116ae6fad36c7873ab10e5bc6e8df9677b169a8
             return caches.delete(key);
           }
         })
       )
     )
-<<<<<<< HEAD
-=======
   );
 
-  // 🔥 Kirim pesan ke semua tab kalau versi baru aktif
+  // 🔥 Kirim notifikasi update ke semua tab aktif
   self.clients.matchAll().then((clients) => {
     clients.forEach((client) => client.postMessage({ type: "UPDATE_READY" }));
   });
 
-  self.clients.claim();
+  self.clients.claim(); // langsung klaim kontrol tab
 });
 
-// ✅ Fetch: dynamic cache + fallback
-self.addEventListener("fetch", (event) => {
-  const request = event.request;
-
-  // Abaikan API backend (Google Apps Script)
-  if (request.url.includes("script.google.com")) {
-    return;
-  }
-
-  event.respondWith(
-    caches.match(request).then((response) => {
-      return (
-        response ||
-        fetch(request)
-          .then((resp) => {
-            // Simpan ke cache
-            const copy = resp.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
-            return resp;
-          })
-          .catch(() => caches.match(new URL("index.html", BASE_URL).toString()))
-      );
-    })
->>>>>>> d116ae6fad36c7873ab10e5bc6e8df9677b169a8
-  );
-
-  // ⚡ Auto-claim agar SW baru langsung aktif
-  self.clients.claim();
-});
-
-// ===============
-// 🌐 FETCH HANDLER
-// ===============
+// ===============================
+// 🌐 FETCH — dynamic cache + fallback offline
+// ===============================
 self.addEventListener("fetch", (event) => {
   const req = event.request;
   const url = req.url;
@@ -166,30 +102,30 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // 🧠 Cache-first untuk file statis, fallback ke network
+  // 🧠 Cache-first dengan fallback network
   event.respondWith(
     caches.match(req).then((cachedRes) => {
       return (
         cachedRes ||
         fetch(req)
           .then((networkRes) => {
-            // Cache file baru (stale-while-revalidate)
-            return caches.open(CACHE_NAME).then((cache) => {
+            const clone = networkRes.clone();
+            caches.open(CACHE_NAME).then((cache) => {
               if (req.method === "GET" && req.url.startsWith("http")) {
-                cache.put(req, networkRes.clone());
+                cache.put(req, clone);
               }
-              return networkRes;
             });
+            return networkRes;
           })
-          .catch(() => caches.match("/index.html"))
+          .catch(() => caches.match(new URL("index.html", BASE_URL).toString()))
       );
     })
   );
 });
 
-// ===============
+// ===============================
 // 🔁 AUTO REFRESH
-// ===============
+// ===============================
 self.addEventListener("message", (event) => {
   if (event.data === "SKIP_WAITING") {
     console.log("⚡ SW: Skip waiting — activating update now...");
@@ -197,9 +133,9 @@ self.addEventListener("message", (event) => {
   }
 });
 
-// ===============
+// ===============================
 // 💡 NOTIFIKASI UPDATE
-// ===============
+// ===============================
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     (async () => {
