@@ -4,9 +4,12 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Dashboard Giat Patroli</title>
+
     <link rel="stylesheet" href="dashboard.css" />
+    <link rel="preconnect" href="https://www.gstatic.com" />
+    <link rel="dns-prefetch" href="https://www.gstatic.com" />
+
     <style>
-      /* Tambahan untuk status online/offline */
       .status {
         display: inline-block;
         padding: 4px 10px;
@@ -23,7 +26,6 @@
         color: #fff;
       }
 
-      /* Progress bar */
       .progress-box {
         width: 100%;
         height: 16px;
@@ -49,45 +51,45 @@
         text-align: center;
       }
 
+      .menu-card {
+        transition: transform 0.2s, background 0.3s;
+      }
+      .menu-card:hover {
+        transform: scale(1.05);
+      }
+
+      .menu-card.disabled {
+        pointer-events: none;
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+
       .patroli-status {
         font-size: 0.9rem;
         color: #444;
       }
-
-      .menu-card.disabled {
-        pointer-events: none; /* ✅ tidak bisa diklik */
-        opacity: 0.6; /* ✅ tampil lebih redup */
-        cursor: not-allowed;
-      }
     </style>
   </head>
+
   <body>
     <input type="hidden" id="nipHidden" />
 
-    <!-- ===== HEADER ===== -->
     <header class="header">
       <div class="profile">
         <img
           id="fotoUser"
-<<<<<<< HEAD
           src="../assets/default-avatar.png"
-          class="img-circle elevation-2"
-          alt="User Image"
-=======
-          src="https://cdn-icons-png.flaticon.com/512/149/149071.png"
-          alt="Foto User"
+          alt="Foto Petugas"
           class="foto-user"
-          onerror="this.src='https://cdn-icons-png.flaticon.com/512/149/149071.png'"
->>>>>>> d116ae6fad36c7873ab10e5bc6e8df9677b169a8
+          onerror="this.src='../assets/default-avatar.png'"
         />
 
-        <h1 class="app-title">GIAT SCURITY PATROLI</h1>
+        <h1 class="app-title">GIAT SECURITY PATROLI</h1>
         <p id="infoUser">
           <span id="namaUser">Nama Security</span> |
           <span id="perusahaan">Perusahaan</span>
         </p>
 
-        <!-- ✅ Greeting personal -->
         <p
           id="greeting"
           style="margin: 5px 0; font-weight: bold; color: #444"
@@ -95,11 +97,8 @@
 
         <span id="statusOnline" class="status offline">Offline</span>
         <div id="dateTime" class="datetime">--/--/---- --:--:--</div>
-
-        <!-- ✅ Tombol Logout -->
       </div>
 
-      <!-- Lengkungan Bawah -->
       <svg
         class="wave"
         xmlns="http://www.w3.org/2000/svg"
@@ -113,7 +112,6 @@
       </svg>
     </header>
 
-    <!-- Card Patroli -->
     <div class="card-patroli">
       <h2>📍 Patroli Area</h2>
       <div id="patroliProgress" class="progress-box">
@@ -131,29 +129,11 @@
         <p>Jadwal Patroli</p>
       </a>
 
-      <!-- <a href="../pages/pending.html" class="menu-card">
-        <div class="icon">⏳</div>
-        <p>Absen Pending</p>
-      </a> -->
-      <!-- <a href="../pages/riwayat.html" class="menu-card">
-        <div class="icon">📅</div>
-        <p>Laporan Patroli</p>
-<<<<<<< HEAD
-      </a> -->
       <a href="panduan.html" class="menu-card">
         <div class="icon">📚</div>
         <p>Cara Penggunaan</p>
       </a>
-      <!-- <a href="#" class="menu-card" onclick="showNotifikasi()">
-        <div class="icon">🔔</div>
-        <p>Notifikasi</p>
-      </a> -->
-      <!-- <a href="pengaturan.html" class="menu-card">
-        <div class="icon">⚙️</div>
-        <p>Pengaturan</p>
-      </a> -->
-=======
-      </a>
+
       <a href="javascript:void(0)" class="menu-card disabled">
         <div class="icon">🔔</div>
         <p>Notifikasi</p>
@@ -161,28 +141,13 @@
           >Sedang dalam pengembangan</small
         >
       </a>
->>>>>>> d116ae6fad36c7873ab10e5bc6e8df9677b169a8
     </main>
+
     <a href="#" class="menu-card" onclick="logoutUser()">
       <div class="icon">🚪</div>
       <p>Logout</p>
     </a>
 
-    <button
-      onclick="logout()"
-      style="
-        margin-top: 10px;
-        padding: 6px 12px;
-        border: none;
-        border-radius: 8px;
-        background: #b71c1c;
-        color: #fff;
-        font-weight: bold;
-        cursor: pointer;
-      "
-    >
-      🚪 Logout
-    </button>
     <footer class="footer">
       <p>&copy; 2025 GIAT PATROLI • <span id="tahunSekarang"></span></p>
     </footer>
@@ -190,10 +155,7 @@
     <script>
       document.getElementById("tahunSekarang").textContent =
         new Date().getFullYear();
-    </script>
 
-    <!-- Jam realtime -->
-    <script>
       function updateDateTime() {
         const now = new Date();
         document.getElementById("dateTime").textContent =
@@ -213,35 +175,27 @@
       updateDateTime();
     </script>
 
-    <!-- Ambil data user -->
-
     <script type="module">
-      // Ambil data user dari localStorage
       let userData = JSON.parse(localStorage.getItem("userData"));
 
-      // ✅ Auto-fix: kalau masih ada "foto" tapi belum ada "fotoUrl"
       if (userData && userData.foto && !userData.fotoUrl) {
-        userData.fotoUrl = userData.foto; // pindahkan
-        delete userData.foto; // hapus yang lama
+        userData.fotoUrl = userData.foto;
+        delete userData.foto;
         localStorage.setItem("userData", JSON.stringify(userData));
-        console.log("✔ UserData diperbarui: foto → fotoUrl");
       }
 
       if (userData) {
-        // Tampilkan data ke dashboard
         document.getElementById("nipHidden").value = userData.nip;
         document.getElementById("namaUser").textContent = userData.nama;
         document.getElementById("perusahaan").textContent =
           userData.perusahaanNama || "-";
 
         const fotoUser = document.getElementById("fotoUser");
-        if (userData.fotoUrl && userData.fotoUrl.trim() !== "") {
-          fotoUser.src = userData.fotoUrl;
-        } else {
-          fotoUser.src = "../assets/default-avatar.png";
-        }
+        fotoUser.src =
+          userData.fotoUrl && userData.fotoUrl.trim() !== ""
+            ? userData.fotoUrl
+            : "../assets/default-avatar.png";
 
-        // ✅ Greeting personal
         document.getElementById("greeting").textContent =
           "👋 Selamat datang, " + userData.nama + "!";
       } else {
@@ -249,14 +203,14 @@
         window.location.href = "../login.html";
       }
 
-      // ✅ Fungsi Logout
-      function logout() {
-        localStorage.removeItem("userData");
-        window.location.href = "../login.html";
-      }
+      window.logoutUser = function () {
+        if (confirm("Apakah Anda yakin ingin keluar?")) {
+          localStorage.removeItem("userData");
+          window.location.href = "../login.html";
+        }
+      };
     </script>
 
-    <!-- Script Progress Patroli -->
     <script>
       const maxArea = 5;
       function updatePatroliStatus() {
@@ -268,7 +222,6 @@
         let areaNow = progress.currentArea || 1;
         let startTime = progress.startTime || now;
 
-        // ✅ Reset otomatis setelah 12 jam dari absen terakhir
         if (now - startTime > 12 * 60 * 60 * 1000) {
           localStorage.removeItem("patroliProgress");
           areaNow = 1;
@@ -290,10 +243,7 @@
           `<small>⏳ Progress akan direset otomatis 12 jam setelah absen terakhir.</small>`;
       }
       document.addEventListener("DOMContentLoaded", updatePatroliStatus);
-    </script>
 
-    <!-- Status Online -->
-    <script>
       function updateOnlineStatus() {
         const el = document.getElementById("statusOnline");
         if (navigator.onLine) {
@@ -311,27 +261,12 @@
       window.addEventListener("offline", updateOnlineStatus);
     </script>
 
-    <!-- <script src="dashboard.js"></script> -->
-    <script src="../js/pending.js"></script>
-    <button class="fab-logout" onclick="logoutUser()">🚪</button>
-    <script>
-      function logoutUser() {
-        if (confirm("Apakah Anda yakin ingin keluar?")) {
-          localStorage.removeItem("userData");
-          window.location.href = "../login.html";
-        }
-      }
-    </script>
     <script>
       function bukaJadwalPatroli() {
-        // 🔹 Set flag agar jadwalPatroli.html tahu harus filter waktu
         localStorage.setItem("filterShiftByTime", "true");
         window.location.href = "../pages/jadwalpatroli.html";
       }
-    </script>
 
-    <script>
-      // Cek shift aktif sekarang (tanpa buka halaman jadwal)
       async function cekShiftAktif() {
         const { db } = await import("../js/firebase.js");
         const { getDocs, collection } = await import(
@@ -353,18 +288,19 @@
           let [eh, em] = s.jamSelesai.split(":").map(Number);
           let start = sh + sm / 60;
           let end = eh + em / 60;
-          const cross = s.crossesMidnight || end <= start;
+          const cross = end <= start;
           if (cross) end += 24;
+
           if (
             (!cross && current >= start && current < end) ||
-            (cross && (current >= start || current + 24 < end))
+            (cross && (current >= start || current < end - 24))
           )
             aktif = true;
         });
 
         if (aktif) {
           const btn = document.querySelector('[onclick="bukaJadwalPatroli()"]');
-          btn.style.background = "#43a047"; // hijau kalau aktif
+          btn.style.background = "#43a047";
           btn.style.color = "#fff";
           btn.querySelector("p").textContent = "Jadwal Patroli (Aktif)";
         }
