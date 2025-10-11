@@ -67,6 +67,14 @@
         color: #666;
       }
     </style>
+
+    <!-- ✅ Auto redirect paling aman -->
+    <script>
+      const user = JSON.parse(localStorage.getItem("userData") || "null");
+      if (user && user.nip) {
+        window.location.href = "dashboard/dashboard.html";
+      }
+    </script>
   </head>
 
   <body>
@@ -97,16 +105,6 @@
         getDoc,
       } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-      // ✅ AUTO LOGIN — hanya satu kali pengecekan
-      const existingUser = JSON.parse(
-        localStorage.getItem("userData") || "null"
-      );
-      if (existingUser?.nip && existingUser?.nama) {
-        console.log("🔓 Auto-login:", existingUser.nama);
-        window.location.href = "dashboard/dashboard.html";
-      }
-
-      // 🔑 Proses login manual
       document
         .getElementById("loginForm")
         .addEventListener("submit", async (e) => {
@@ -141,13 +139,6 @@
             console.error(err);
           }
         });
-    </script>
-    <script>
-      // ✅ Kalau sudah login sebelumnya, langsung redirect ke dashboard
-      const savedUser = JSON.parse(localStorage.getItem("userData") || "{}");
-      if (savedUser.nip) {
-        window.location.href = "dashboard/dashboard.html";
-      }
     </script>
   </body>
 </html>
