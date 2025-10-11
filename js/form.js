@@ -1,3 +1,6 @@
+// ===============================
+// 🚓 GIAT PATROLI FORM (FINAL CLEAN MERGE)
+// ===============================
 const maxArea = 5;
 let areaNow = 1;
 window.areaFileCache = window.areaFileCache || {};
@@ -72,12 +75,15 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-// ========== UTIL ==========
+// ===============================
+// 🧠 UTIL FUNCTION
+// ===============================
 function updateJam() {
   document.getElementById("jam").innerText = new Date().toLocaleTimeString(
     "id-ID"
   );
 }
+
 function getAlamatFromCoords(lat, lon) {
   const url = `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`;
   fetch(url, { headers: { "User-Agent": "patroli-app/1.0" } })
@@ -92,6 +98,7 @@ function getAlamatFromCoords(lat, lon) {
       ).innerText = `${lat}, ${lon} (❌ alamat gagal)`;
     });
 }
+
 function updateAreaUI() {
   document.getElementById("areaNow").innerText = areaNow;
   document.getElementById("areaTitle").innerText = `Area ${areaNow}`;
@@ -103,7 +110,9 @@ function updateAreaUI() {
   }
 }
 
-// ========== AMBIL FOTO ==========
+// ===============================
+// 📸 AMBIL FOTO
+// ===============================
 async function ambilFoto() {
   const input = document.createElement("input");
   input.type = "file";
@@ -185,7 +194,9 @@ function compressAndWatermark(
   });
 }
 
-// ========== SIMPAN PER AREA ==========
+// ===============================
+// 💾 SIMPAN PER AREA
+// ===============================
 function simpanArea() {
   const ket = document.getElementById("keterangan").value.trim();
   const status = document.getElementById("statusArea")
@@ -204,7 +215,6 @@ function simpanArea() {
     return;
   }
 
-  // 🔹 Tampilkan overlay loading
   document.getElementById("loadingOverlay").style.display = "flex";
 
   const lokasi = document.getElementById("lokasi").innerText;
@@ -215,11 +225,10 @@ function simpanArea() {
   reader.onload = () => {
     const base64File = reader.result;
 
-    // ✅ Simpan ke localStorage
+    // ✅ Simpan metadata ke localStorage
     localStorage.setItem(
       `patroliArea${areaNow}`,
       JSON.stringify({
-<<<<<<< HEAD
         nip,
         nama,
         perusahaan,
@@ -232,24 +241,8 @@ function simpanArea() {
         keterangan: ket,
         status,
         timestamp: new Date().toISOString(),
-=======
-        currentArea: nextArea,
-        // startTime: progress.startTime || Date.now(),
-        startTime:Date.now(),// reset 12 jam setelah absen terakhir
->>>>>>> d116ae6fad36c7873ab10e5bc6e8df9677b169a8
       })
     );
-
-    // ✅ Update progress shift + patroli
-    const shiftId = localStorage.getItem("shiftAktif");
-    const patroli = localStorage.getItem("patroliAktif");
-    if (shiftId && patroli) {
-      const key = `progress-${shiftId}-${patroli}`;
-      let prog = JSON.parse(localStorage.getItem(key) || "{}");
-      prog.areaDone = (prog.areaDone || 0) + 1;
-      prog.pending = (prog.pending || 0) + 1;
-      localStorage.setItem(key, JSON.stringify(prog));
-    }
 
     // ✅ Update progress umum
     const nextArea = areaNow + 1;
@@ -265,45 +258,19 @@ function simpanArea() {
           startTime: progress.startTime || Date.now(),
         })
       );
-
-      alert(
-        `✅ Area ${areaNow} (${status}) tersimpan. Anda akan diarahkan ke Jadwal Patroli.`
-      );
+      alert(`✅ Area ${areaNow} (${status}) tersimpan.`);
     } else {
       localStorage.setItem(
         "patroliProgress",
         JSON.stringify({ currentArea: 1, startTime: Date.now() })
       );
-
       alert("🎉 Patroli 5 area selesai. Silakan cek status di Jadwal Patroli.");
-
-      // ✅ Setelah semua area selesai, aktifkan patroli berikutnya
-      const labels = ["A", "B", "C", "D"];
-      const shiftId = localStorage.getItem("shiftAktif");
-      const patroli = localStorage.getItem("patroliAktif");
-      if (shiftId && patroli) {
-        const currentKey = `progress-${shiftId}-${patroli}`;
-        let current = JSON.parse(localStorage.getItem(currentKey) || "{}");
-        current.areaDone = 5;
-        current.pending = 0;
-        localStorage.setItem(currentKey, JSON.stringify(current));
-
-        const idx = labels.indexOf(patroli);
-        const nextLabel = labels[idx + 1];
-        if (nextLabel) {
-          const nextKey = `progress-${shiftId}-${nextLabel}`;
-          let next = JSON.parse(localStorage.getItem(nextKey) || "{}");
-          next.unlocked = true; // 🔓 patroli berikutnya aktif
-          localStorage.setItem(nextKey, JSON.stringify(next));
-        }
-      }
     }
 
-    // ✅ Setelah alert, tampilkan overlay redirect
+    // ✅ Redirect otomatis
     setTimeout(() => {
       document.getElementById("loadingOverlay").style.display = "none";
       document.getElementById("redirectOverlay").style.display = "flex";
-
       setTimeout(() => {
         localStorage.setItem("filterShiftByTime", "true");
         window.location.href = "../pages/jadwalpatroli.html";
@@ -314,7 +281,9 @@ function simpanArea() {
   reader.readAsDataURL(file);
 }
 
-// ========== CEK DISABLE ==========
+// ===============================
+// 🧩 CEK DISABLE TOMBOL
+// ===============================
 function cekDisable() {
   const saved = localStorage.getItem(`patroliArea${areaNow}`);
   const btn = document.getElementById("simpanBtn");
@@ -327,7 +296,9 @@ function cekDisable() {
   }
 }
 
-// ========== RESET ==========
+// ===============================
+// 🔁 RESET PATR0LI
+// ===============================
 function resetPatroli() {
   for (let i = 1; i <= maxArea; i++) {
     localStorage.removeItem(`patroliArea${i}`);
