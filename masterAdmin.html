@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <title>Admin Panel Patroli</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <!-- AdminLTE & FontAwesome -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/css/adminlte.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"
+    />
+
+    <style>
+      /* === Sidebar Custom Gradient === */
+      .main-sidebar {
+        background: linear-gradient(180deg, #d32f2f, #ff7043);
+        color: white !important;
+      }
+      .main-sidebar .brand-link {
+        background: rgba(255, 255, 255, 0.1);
+        text-align: center;
+        color: #fff;
+        font-weight: bold;
+        letter-spacing: 1px;
+      }
+      .main-sidebar .nav-link {
+        color: #fff;
+        transition: background 0.3s, transform 0.2s;
+      }
+      .main-sidebar .nav-link:hover {
+        background: rgba(255, 255, 255, 0.15);
+        transform: translateX(3px);
+      }
+      .main-sidebar .nav-link.active {
+        background: rgba(255, 255, 255, 0.3);
+        color: #fff;
+        font-weight: 600;
+      }
+      .main-sidebar .nav-icon {
+        color: #fff;
+      }
+
+      /* === Card Animations === */
+      @keyframes pulseYellow {
+        0% {
+          box-shadow: 0 0 0 0 rgba(251, 192, 45, 0.4);
+        }
+        70% {
+          box-shadow: 0 0 0 10px rgba(251, 192, 45, 0);
+        }
+        100% {
+          box-shadow: 0 0 0 0 rgba(251, 192, 45, 0);
+        }
+      }
+      .issue-warning {
+        border-left: 6px solid #fbc02d;
+        background: #fff8e1;
+        padding: 12px 16px;
+        border-radius: 8px;
+        margin-bottom: 8px;
+        animation: pulseYellow 2s infinite;
+      }
+      .card-warning-company {
+        border-left: 6px solid #fbc02d;
+        background: #fff8e1;
+        padding: 14px 18px;
+        border-radius: 10px;
+        margin-bottom: 10px;
+        animation: pulseYellow 2.2s infinite;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+      }
+      .card-warning-company:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+      }
+
+      /* Layout tweak */
+      body {
+        background: #f8f9fa;
+      }
+      .content-wrapper {
+        background: #fff;
+      }
+
+      @keyframes yellowPulse {
+        0% {
+          box-shadow: 0 0 0 0 rgba(255, 213, 79, 0.4);
+        }
+        70% {
+          box-shadow: 0 0 0 10px rgba(255, 213, 79, 0);
+        }
+        100% {
+          box-shadow: 0 0 0 0 rgba(255, 213, 79, 0);
+        }
+      }
+      .card-warning-company {
+        animation: yellowPulse 2.8s infinite;
+      }
+
+      .card-warning-company {
+        background: #fff7d1 !important; /* kuning lembut tapi jelas */
+        border: 1px solid #f9cf58;
+        border-left: 6px solid #fbc02d;
+        padding: 14px 18px;
+        border-radius: 10px;
+        margin-bottom: 10px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        box-shadow: 0 3px 8px rgba(255, 193, 7, 0.3);
+        transition: all 0.3s ease;
+      }
+
+      .card-warning-company:hover {
+        background: #ffe082;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 10px rgba(255, 167, 38, 0.4);
+      }
+
+      .card-warning-company strong {
+        color: #8c6d1f;
+        font-weight: 600;
+        font-size: 1rem;
+      }
+
+      .card-warning-company .badge {
+        background: #fbc02d;
+        color: #333;
+        font-weight: 600;
+        font-size: 0.8rem;
+        padding: 5px 10px;
+        border-radius: 6px;
+      }
+    </style>
+  </head>
+
+  <body class="hold-transition sidebar-mini">
+    <div class="wrapper">
+      <!-- Navbar -->
+      <!-- Navbar -->
+      <nav
+        class="main-header navbar navbar-expand navbar-white navbar-light shadow-sm"
+      >
+        <ul class="navbar-nav">
+          <li class="nav-item">
+            <a class="nav-link" data-widget="pushmenu" href="#">
+              <i class="fas fa-bars"></i>
+            </a>
+          </li>
+
+          <!-- Logo + Title -->
+          <li class="nav-item d-none d-sm-inline-block">
+            <div
+              class="d-flex align-items-center"
+              style="gap: 10px; height: 100%"
+            >
+              <img
+                src="../assets/logo-patroli.png"
+                alt="Logo"
+                style="
+                  width: 36px;
+                  height: 36px;
+                  border-radius: 50%;
+                  object-fit: contain;
+                  box-shadow: 0 0 10px rgba(211, 47, 47, 0.4);
+                "
+              />
+              <span
+                class="navbar-title mb-0"
+                style="
+                  font-weight: 700;
+                  font-size: 1.1rem;
+                  color: #c62828;
+                  text-shadow: 1px 1px 3px rgba(255, 255, 255, 0.7);
+                  letter-spacing: 0.3px;
+                "
+              >
+                Giat Patroli Security Admin
+              </span>
+            </div>
+          </li>
+        </ul>
+      </nav>
+
+      <!-- Sidebar -->
+      <aside class="main-sidebar elevation-4">
+        <a href="#" class="brand-link text-center">
+          <img
+            src="../assets/logo-patroli.png"
+            alt="Logo"
+            class="brand-image img-circle elevation-3"
+            style="opacity: 0.9; width: 45px; height: 45px; object-fit: cover"
+          />
+          <span class="brand-text font-weight-bold ml-2" style="color: white">
+            Giat S.P Admin
+          </span>
+        </a>
+
+        <div class="sidebar">
+          <nav class="mt-2">
+            <ul
+              class="nav nav-pills nav-sidebar flex-column"
+              data-widget="treeview"
+              role="menu"
+            >
+              <li class="nav-item">
+                <a
+                  href="#"
+                  class="nav-link active"
+                  onclick="showSection('dashboard')"
+                >
+                  <i class="nav-icon fas fa-tachometer-alt"></i>
+                  <p>Dashboard</p>
+                </a>
+              </li>
+
+              <li class="nav-item">
+                <a
+                  href="#"
+                  class="nav-link"
+                  onclick="showSection('perusahaanShift')"
+                >
+                  <i class="nav-icon fas fa-building"></i>
+                  <p>Perusahaan & Shift</p>
+                </a>
+              </li>
+
+              <li class="nav-item">
+                <a href="#" class="nav-link" onclick="showSection('petugas')">
+                  <i class="nav-icon fas fa-user-shield"></i>
+                  <p>Petugas</p>
+                </a>
+              </li>
+
+              <li class="nav-item">
+                <a
+                  href="#"
+                  class="nav-link"
+                  onclick="showSection('notifikasi')"
+                >
+                  <i class="nav-icon fas fa-bell"></i>
+                  <p>Notifikasi</p>
+                </a>
+              </li>
+
+              <li class="nav-item">
+                <a href="#" class="nav-link" onclick="showSection('settings')">
+                  <i class="nav-icon fas fa-cogs"></i>
+                  <p>Settings</p>
+                </a>
+              </li>
+            </ul>
+          </nav>
+        </div>
+      </aside>
+
+      <!-- Content Wrapper -->
+      <div class="content-wrapper">
+        <!-- DASHBOARD -->
+        <section class="content" id="dashboardSection">
+          <div class="container-fluid pt-3">
+            <h3>📊 Dashboard Patroli</h3>
+            <div id="dashboardCards" class="row"></div>
+          </div>
+        </section>
+
+        <!-- PERUSAHAAN & SHIFT -->
+        <section
+          class="content"
+          id="perusahaanShiftSection"
+          style="display: none"
+        >
+          <div class="container-fluid pt-3">
+            <h3>🏢 Manajemen Perusahaan & Jadwal Patroli</h3>
+            <div id="perusahaanContent"></div>
+          </div>
+        </section>
+
+        <!-- PETUGAS -->
+        <section class="content" id="petugasSection" style="display: none">
+          <div class="container-fluid pt-3">
+            <h3>👮 Kelola Petugas Patroli</h3>
+            <div id="petugasContent"></div>
+          </div>
+        </section>
+
+        <!-- NOTIFIKASI -->
+        <section class="content" id="notifikasiSection" style="display: none">
+          <div class="container-fluid pt-3">
+            <h3>🔔 Notifikasi</h3>
+            <p>Pengaturan notifikasi patroli.</p>
+          </div>
+        </section>
+
+        <!-- SETTINGS -->
+        <section class="content" id="settingsSection" style="display: none">
+          <div class="container-fluid pt-3">
+            <h3>⚙️ Settings</h3>
+            <p>Pengaturan sistem patroli.</p>
+          </div>
+        </section>
+      </div>
+
+      <!-- Footer -->
+      <footer class="main-footer text-center">
+        © 2025 Giat Patroli Security
+      </footer>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/js/adminlte.min.js"></script>
+
+    <script>
+      // Fungsi untuk menampilkan section dan memanggil module terkait
+      function showSection(id) {
+        document
+          .querySelectorAll(".content")
+          .forEach((sec) => (sec.style.display = "none"));
+        document.getElementById(id + "Section").style.display = "block";
+
+        // highlight sidebar active
+        document
+          .querySelectorAll(".nav-link")
+          .forEach((a) => a.classList.remove("active"));
+        const activeLink = document.querySelector(
+          `.nav-link[onclick="showSection('${id}')"]`
+        );
+        if (activeLink) activeLink.classList.add("active");
+
+        // Module loader
+        if (id === "dashboard") {
+          import("../js/admin-dashboard.js").then((m) => m.loadDashboard?.());
+        } else if (id === "perusahaanShift") {
+          import("../js/admin-perusahaan-shift.js").then((m) =>
+            m.loadPerusahaanShift?.()
+          );
+        } else if (id === "petugas") {
+          import("../js/admin-petugas.js").then((m) => m.loadPetugas?.());
+        }
+      }
+
+      // Default tampilkan dashboard saat halaman dibuka
+      document.addEventListener("DOMContentLoaded", () => {
+        showSection("dashboard");
+      });
+    </script>
+  </body>
+</html>

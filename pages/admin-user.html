@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin - Input User</title>
+    <link rel="stylesheet" href="../style/admin-user.css" />
+  </head>
+  <body>
+    <header class="judul">
+      <h1>Tambah Data User Security</h1>
+    </header>
+
+    <div class="container">
+      <form id="formUser">
+        <input type="text" id="nip" placeholder="NIP" required />
+        <input type="text" id="nama" placeholder="Nama Lengkap" required />
+        <input type="text" id="perusahaan" placeholder="Perusahaan" required />
+
+        <button type="button" id="btnUploadFoto">📸 Upload Foto</button>
+
+        <div class="foto-preview" id="previewFotoUser">
+          <img id="fotoUserPreview" src="" alt="Preview Foto" />
+          <p id="infoPreview">Belum ada foto</p>
+        </div>
+
+        <button type="submit">Simpan User</button>
+      </form>
+
+      <div id="statusUser"></div>
+    </div>
+
+    <!-- <script src="../js/admin-user.js"></script> -->
+    <script type="module" src="../js/admin-user.js"></script>
+  </body>
+</html>

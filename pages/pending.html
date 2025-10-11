@@ -182,6 +182,59 @@
       .success-box button:hover {
         background: #1b5e20;
       }
+
+      /* === Toast Notification (dengan progress bar) === */
+      /* === Toast Notification (modern bar di atas) === */
+      #toastNotif {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background: #43a047; /* default hijau */
+        color: white;
+        padding: 12px 16px 10px;
+        border-radius: 10px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        font-size: 0.9rem;
+        opacity: 0;
+        transform: translateY(20px);
+        transition: all 0.4s ease;
+        z-index: 9999;
+        min-width: 280px;
+        overflow: hidden;
+      }
+      #toastNotif.show {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      /* 🔹 Progress bar di atas toast */
+      #toastProgressBar {
+        position: absolute;
+        top: 0;
+        left: 0;
+        height: 4px;
+        background: #81c784;
+        width: 0%;
+        border-radius: 4px 4px 0 0;
+        transition: width 1s linear;
+      }
+
+      .btn-kirim-semua {
+        background: linear-gradient(90deg, #e53935, #ff7043);
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        transition: background 0.3s ease, transform 0.2s;
+      }
+
+      .btn-kirim-semua:hover {
+        background: linear-gradient(90deg, #d32f2f, #f57c00);
+        transform: scale(1.05);
+      }
     </style>
   </head>
   <body>
@@ -197,13 +250,6 @@
       <div class="alert-info">
         ⚠️ <b>Penting!</b> Kirim data sesegera mungkin agar laporan patroli
         tercatat di server.
-      </div>
-
-      <!-- 🔥 Tombol Kirim Semua -->
-      <div style="text-align: right; margin-bottom: 10px">
-        <button class="btn btn-kirim" onclick="kirimSemua()">
-          🚀 Kirim Semua
-        </button>
       </div>
 
       <table id="pendingTable">
@@ -242,8 +288,43 @@
         <button onclick="closeOverlay()">OK</button>
       </div>
     </div>
+    <script>
+      // ✅ Deteksi tombol "Back" (gesture atau browser)
+      window.addEventListener("popstate", () => {
+        // 🔹 aktifkan filter shift aktif sebelum kembali
+        localStorage.setItem("filterShiftByTime", "true");
+
+        // 🔹 redirect manual ke jadwal patroli
+        window.location.href = "../pages/jadwalpatroli.html";
+      });
+
+      // Dorong satu state baru supaya event popstate bisa terdeteksi
+      history.pushState(null, null, location.href);
+    </script>
 
     <!-- ✅ Script harus di paling bawah -->
-    <script src="../js/pending.js"></script>
+    <script type="module" src="../js/pending.js"></script>
+    <script>
+      // 🔁 Saat user menekan tombol Back atau menutup halaman
+      window.addEventListener("beforeunload", () => {
+        // Tandai agar jadwal patroli tampil shift aktif
+        localStorage.setItem("filterShiftByTime", "true");
+      });
+
+      // 🔁 Saat user tekan tombol Back di HP atau gesture navigasi
+      window.addEventListener("popstate", () => {
+        localStorage.setItem("filterShiftByTime", "true");
+
+        // Tambah efek visual halus
+        document.body.style.transition = "opacity 0.3s ease";
+        document.body.style.opacity = "0";
+        setTimeout(() => {
+          window.location.href = "../pages/jadwalpatroli.html";
+        }, 250);
+      });
+
+      // Dorong satu state agar popstate bisa aktif
+      history.pushState(null, null, location.href);
+    </script>
   </body>
 </html>

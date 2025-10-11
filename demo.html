@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Command Center - Dashboard Patroli</title>
+
+    <!-- Bootstrap (quick layout) -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <!-- Leaflet for map -->
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    />
+    <!-- Font Awesome (icons) -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    />
+
+    <style>
+      :root {
+        --accent: #1976d2; /* biru */
+        --ok: #2e7d32; /* hijau */
+        --nok: #c62828; /* merah */
+      }
+      body {
+        background: #f5f7fb;
+        font-family: Inter, system-ui, sans-serif;
+      }
+      .summary-box {
+        border-radius: 8px;
+        padding: 14px;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .summary-box .left {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+      }
+      .summary-box h3 {
+        margin: 0;
+        font-size: 1.15rem;
+      }
+      .summary-box p {
+        margin: 0;
+        font-size: 0.9rem;
+        opacity: 0.9;
+      }
+      .box-blue {
+        background: linear-gradient(90deg, var(--accent), #2196f3);
+      }
+      .box-green {
+        background: linear-gradient(90deg, var(--ok), #43a047);
+      }
+      .box-red {
+        background: linear-gradient(90deg, var(--nok), #e53935);
+      }
+      .box-grey {
+        background: linear-gradient(90deg, #6c757d, #495057);
+      }
+
+      #map {
+        height: 360px;
+        border-radius: 8px;
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+      }
+
+      .card-panel {
+        background: white;
+        padding: 12px;
+        border-radius: 8px;
+        box-shadow: 0 6px 18px rgba(18, 26, 40, 0.04);
+      }
+
+      /* event log floating */
+      #eventLog {
+        position: fixed;
+        right: 18px;
+        bottom: 18px;
+        width: 320px;
+        max-height: 420px;
+        overflow: auto;
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 10px;
+        padding: 10px;
+        box-shadow: 0 8px 28px rgba(0, 0, 0, 0.12);
+        font-size: 0.9rem;
+        z-index: 9999;
+      }
+      #issueList .issue-item {
+        padding: 10px;
+        border-radius: 8px;
+        background: #fff6f6;
+        margin-bottom: 8px;
+        border-left: 4px solid var(--nok);
+      }
+
+      .toast-custom {
+        position: fixed;
+        right: 20px;
+        bottom: 100px;
+        z-index: 99999;
+      }
+
+      /* small responsive */
+      @media (max-width: 900px) {
+        #eventLog {
+          position: static;
+          width: 100%;
+          margin-top: 12px;
+        }
+        #map {
+          height: 240px;
+        }
+      }
+
+      /* subtle animation for footer summary */
+      .summary-animate {
+        transform: scale(1.07);
+        transition: all 0.35s ease;
+        background: #e8f5e9;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container-fluid p-3" id="dashboardSection">
+      <!-- HEADLINE / SUMMARY -->
+      <div class="row g-2 mb-3" id="summaryRow">
+        <div class="col-md-3 col-sm-6 col-12">
+          <div class="summary-box box-blue">
+            <div class="left">
+              <i class="fa-solid fa-clock fa-2x"></i>
+              <div>
+                <h3 id="totalPatroli">—</h3>
+                <p>Total Patroli Hari Ini</p>
+              </div>
+            </div>
+            <div class="right text-end">
+              <div style="font-size: 1.6rem">🔁</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-3 col-sm-6 col-12">
+          <div class="summary-box box-green">
+            <div class="left">
+              <i class="fa-solid fa-check fa-2x"></i>
+              <div>
+                <h3 id="totalOk">—</h3>
+                <p>Total OK</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-3 col-sm-6 col-12">
+          <div class="summary-box box-red">
+            <div class="left">
+              <i class="fa-solid fa-triangle-exclamation fa-2x"></i>
+              <div>
+                <h3 id="totalNotOk">—</h3>
+                <p>Total Not OK</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-3 col-sm-6 col-12">
+          <div class="summary-box box-grey">
+            <div class="left">
+              <i class="fa-solid fa-user-shield fa-2x"></i>
+              <div>
+                <h3 id="petugasActiveCount">—</h3>
+                <p>Petugas Aktif</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MIDDLE: MAP + SIDEBARS -->
+      <div class="row g-3">
+        <div class="col-lg-8 col-12">
+          <div class="card-panel mb-3">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <h5 class="mb-0">🗺️ Peta Lokasi Patroli (Hari Ini)</h5>
+              <div>
+                <button
+                  id="btnToggleMapMarkers"
+                  class="btn btn-sm btn-outline-secondary"
+                >
+                  Toggle Markers
+                </button>
+              </div>
+            </div>
+            <div id="map"></div>
+          </div>
+
+          <div class="card-panel">
+            <h5>👮 Petugas Aktif Saat Ini</h5>
+            <div class="table-responsive">
+              <table class="table table-sm table-striped table-hover">
+                <thead>
+                  <tr>
+                    <th>Nama</th>
+                    <th>Perusahaan</th>
+                    <th>Progress Patroli</th>
+                    <th>OK</th>
+                    <th>Not OK</th>
+                    <th>Status</th>
+                    <th>Jam Terakhir</th>
+                  </tr>
+                </thead>
+                <tbody id="petugasTableBody">
+                  <tr>
+                    <td colspan="7">⏳ Memuat data...</td>
+                  </tr>
+                </tbody>
+                <tfoot>
+                  <tr>
+                    <td
+                      colspan="7"
+                      id="summaryFooter"
+                      style="
+                        text-align: center;
+                        font-weight: bold;
+                        background: #f8f9fa;
+                        padding: 8px;
+                      "
+                    >
+                      ⏳ Menghitung total...
+                    </td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-4 col-12">
+          <div class="card-panel mb-3">
+            <h5>🚨 Daftar Issue (Not OK)</h5>
+            <div id="issueList" style="min-height: 120px">⏳ Memuat...</div>
+          </div>
+
+          <div class="card-panel">
+            <h5>⚡ Aktivitas Terbaru</h5>
+            <div id="latestActivity" style="min-height: 140px">
+              ⏳ Memuat...
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- floating event log (also useful on top of map) -->
+    <div id="eventLog" style="display: none">
+      <h6 style="margin-top: 0">📡 Log Aktivitas (Realtime)</h6>
+      <div id="eventItems"></div>
+    </div>
+
+    <!-- toast container -->
+    <div id="toastContainer" class="toast-custom"></div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- Firebase Firestore imports are inside the module script below -->
+
+    <script type="module">
+      // ===========================
+      // IMPORTANT:
+      // - Place this HTML in your admin folder,
+      // - Ensure ./firebase.js exists and exports `db` (Firestore instance) as in project.
+      // - Collections expected: 'patroli' (documents per report), 'jadwalPatroli' (shift schedule)
+      // - The script uses `tanggal` field in 'patroli' stored as local date string (id-ID)
+      // ===========================
+
+      import { db } from "./firebase.js";
+      import {
+        collection,
+        query,
+        where,
+        onSnapshot,
+        getDocs,
+        updateDoc,
+        doc,
+        orderBy,
+        limit,
+      } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+      // --------------------- DOM refs
+      const totalPatroliEl = document.getElementById("totalPatroli");
+      const totalOkEl = document.getElementById("totalOk");
+      const totalNotOkEl = document.getElementById("totalNotOk");
+      const petugasActiveCountEl =
+        document.getElementById("petugasActiveCount");
+      const petugasTableBody = document.getElementById("petugasTableBody");
+      const summaryFooter = document.getElementById("summaryFooter");
+      const issueListEl = document.getElementById("issueList");
+      const latestActivityEl = document.getElementById("latestActivity");
+      const eventLogEl = document.getElementById("eventLog");
+      const eventItemsEl = document.getElementById("eventItems");
+      const toastContainer = document.getElementById("toastContainer");
+      const btnToggleMapMarkers = document.getElementById(
+        "btnToggleMapMarkers"
+      );
+
+      // --------------------- state
+      let shiftData = []; // jadwalPatroli
+      let lastKnownDocIds = new Set();
+      let markersOn = true;
+      let markersGroup = null;
+      let map = null;
+      let markerIndex = {}; // map docId -> marker
+      let prevTotals = { ok: 0, nok: 0, total: 0 };
+
+      // audio: use WebAudio beep
+      function playBeep(freq = 880, duration = 120) {
+        try {
+          const ctx = new (window.AudioContext || window.webkitAudioContext)();
+          const o = ctx.createOscillator();
+          const g = ctx.createGain();
+          o.type = "sine";
+          o.frequency.value = freq;
+          o.connect(g);
+          g.connect(ctx.destination);
+          o.start();
+          g.gain.setValueAtTime(0.0001, ctx.currentTime);
+          g.gain.exponentialRampToValueAtTime(0.2, ctx.currentTime + 0.01);
+          setTimeout(() => {
+            g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.02);
+            o.stop();
+            ctx.close();
+          }, duration);
+        } catch (e) {
+          console.warn("Audio failed", e);
+        }
+      }
+
+      // helper: create element quickly
+      function el(tag, attrs = {}, html = "") {
+        const e = document.createElement(tag);
+        for (const k in attrs) e.setAttribute(k, attrs[k]);
+        if (html) e.innerHTML = html;
+        return e;
+      }
+
+      // show toast (with auto remove)
+      function showToast(message, color = "#333", playSound = false) {
+        const t = document.createElement("div");
+        t.className = "card p-2 mb-2";
+        t.style.background = color;
+        t.style.color = "white";
+        t.style.boxShadow = "0 6px 18px rgba(0,0,0,0.12)";
+        t.innerHTML = `<small>${message}</small>`;
+        toastContainer.appendChild(t);
+        t.style.opacity = "0";
+        t.style.transform = "translateY(6px)";
+        setTimeout(() => {
+          t.style.opacity = "1";
+          t.style.transform = "translateY(0)";
+        }, 50);
+        setTimeout(() => {
+          t.style.opacity = "0";
+          t.style.transform = "translateY(10px)";
+          setTimeout(() => t.remove(), 300);
+        }, 4000);
+        if (playSound) playBeep(880, 160);
+      }
+
+      // ---------------- MAP -----------------
+      function initMap() {
+        map = L.map("map", { zoomControl: true }).setView(
+          [-6.2, 106.816666],
+          11
+        ); // Jakarta default
+        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+          maxZoom: 19,
+        }).addTo(map);
+        markersGroup = L.layerGroup().addTo(map);
+      }
+
+      function clearMarkers() {
+        markersGroup.clearLayers();
+        markerIndex = {};
+      }
+
+      function addMarkerForPatrol(p) {
+        // p must include ._lat and ._lon numeric fields
+        if (!p._lat || !p._lon) return null;
+        const color = p.status === "Not OK" ? "red" : "green";
+        const icon = L.divIcon({
+          html: `<div style="width:14px;height:14px;border-radius:50%;background:${color};box-shadow:0 2px 6px rgba(0,0,0,0.3)"></div>`,
+          className: "",
+        });
+
+        const m = L.marker([p._lat, p._lon], { icon }).addTo(markersGroup);
+        const popup = `<strong>${escapeHtml(
+          p.nama || "Petugas"
+        )}</strong><br>${escapeHtml(p.perusahaan || "")}<br>${escapeHtml(
+          p.area || ""
+        )} • ${escapeHtml(p.jam || "")}<br><small>${escapeHtml(
+          p.status || ""
+        )}</small>`;
+        m.bindPopup(popup);
+        markerIndex[p.id] = m;
+        return m;
+      }
+
+      // ---------------- PROCESS SNAPSHOT -----------------
+      function processPatroliDocs(docsRaw) {
+        // docsRaw: array of patrol objects (id + fields)
+        // normalize: sort by timestamp asc for per-nip grouping
+        const docs = docsRaw.map((d) => ({
+          ...d,
+          _ts: d.timestamp?.toDate
+            ? d.timestamp.toDate().getTime()
+            : d.timestamp
+            ? new Date(d.timestamp).getTime()
+            : Date.now(),
+        }));
+        docs.sort((a, b) => a._ts - b._ts);
+
+        // try to extract coords if possible
+        docs.forEach((d) => {
+          d._lat = null;
+          d._lon = null;
+          if (typeof d.lat === "number" && typeof d.lon === "number") {
+            d._lat = d.lat;
+            d._lon = d.lon;
+          } else if (d.lokasi && typeof d.lokasi === "string") {
+            // try parse like "-6.12345,106.12345"
+            const m = d.lokasi.match(/(-?\d+\.\d+)\s*,\s*(-?\d+\.\d+)/);
+            if (m) {
+              d._lat = parseFloat(m[1]);
+              d._lon = parseFloat(m[2]);
+            }
+          }
+        });
+
+        // EVENT LOG (latest 10)
+        const sortedDesc = [...docs].sort((a, b) => b._ts - a._ts);
+        const top10 = sortedDesc.slice(0, 10);
+        renderEventLog(top10);
+
+        // Update map markers
+        if (markersOn) {
+          clearMarkers();
+          docs.forEach((d) => {
+            if (d._lat && d._lon) addMarkerForPatrol(d);
+          });
+          // fit bounds to markers if any
+          const latlngs = Object.values(markerIndex).map((m) => m.getLatLng());
+          if (latlngs.length) {
+            try {
+              map.fitBounds(latlngs, { maxZoom: 16, padding: [40, 40] });
+            } catch (e) {}
+          }
+        }
+
+        // GROUP BY NIP
+        const byNip = {};
+        docs.forEach((d) => {
+          if (!d.nip) return;
+          if (!byNip[d.nip]) byNip[d.nip] = [];
+          byNip[d.nip].push(d);
+        });
+
+        // compute totals
+        let totalOkAll = 0;
+        let totalNotOkAll = 0;
+        let totalPatroliAll = docs.length;
+
+        // build rows for petugas table
+        const rows = [];
+        Object.keys(byNip).forEach((nip) => {
+          const reports = byNip[nip];
+          const last = reports[reports.length - 1] || {};
+          const okCount = reports.filter((r) => r.status === "OK").length;
+          const notOkCount = reports.filter(
+            (r) => r.status === "Not OK"
+          ).length;
+          totalOkAll += okCount;
+          totalNotOkAll += notOkCount;
+
+          // find shift info: by nip or fallback by company name
+          let shift =
+            shiftData.find((s) => s.nip === nip) ||
+            shiftData.find((s) => s.perusahaanNama === last.perusahaan);
+
+          // compute totalAreaShift (automatic): default fallback 20
+          let totalAreaShift = 20;
+          let isActive = true; // default show
+          if (shift) {
+            const jamMulai = parseInt((shift.jamMulai || "0:00").split(":")[0]);
+            const jamSelesai = parseInt(
+              (shift.jamSelesai || "23:59").split(":")[0]
+            );
+            const durasiShift =
+              jamSelesai >= jamMulai
+                ? jamSelesai - jamMulai
+                : jamSelesai + 24 - jamMulai;
+            const interval = shift.interval || 2;
+            const totalPatroliShift = Math.floor(durasiShift / interval) || 1;
+            totalAreaShift = totalPatroliShift * (shift.area || 5);
+
+            const nowHour = new Date().getHours();
+            isActive =
+              jamSelesai < jamMulai
+                ? nowHour >= jamMulai || nowHour < jamSelesai
+                : nowHour >= jamMulai && nowHour < jamSelesai;
+          }
+
+          rows.push({
+            nip,
+            nama: last.nama || "-",
+            perusahaan: last.perusahaan || "-",
+            count: reports.length,
+            totalAreaShift,
+            okCount,
+            notOkCount,
+            status: last.status || "OK",
+            jam: last.jam || "-",
+            isActive,
+            lastDoc: last,
+          });
+        });
+
+        // render petugas table rows
+        petugasTableBody.innerHTML = "";
+        const activeRows = rows.filter((r) => r.isActive);
+        activeRows.forEach((r) => {
+          const percent = r.totalAreaShift
+            ? Math.round((r.count / r.totalAreaShift) * 100)
+            : 0;
+          const tr = el("tr");
+          tr.innerHTML = `
+          <td>${escapeHtml(r.nama)}</td>
+          <td>${escapeHtml(r.perusahaan)}</td>
+          <td>
+            <div class="progress" style="height:10px;margin-bottom:4px">
+              <div class="progress-bar" role="progressbar" style="width:${percent}%;background:${
+            r.status === "Not OK"
+              ? getComputedStyle(document.documentElement).getPropertyValue(
+                  "--nok"
+                )
+              : "#43a047"
+          }" aria-valuenow="${percent}" aria-valuemin="0" aria-valuemax="100"></div>
+            </div>
+            <small>${r.count} / ${r.totalAreaShift}</small>
+          </td>
+          <td><span class="badge bg-success">${r.okCount}</span></td>
+          <td><span class="badge bg-danger">${r.notOkCount}</span></td>
+          <td><span class="badge ${
+            r.status === "Not OK" ? "bg-danger" : "bg-success"
+          }">${escapeHtml(r.status)}</span></td>
+          <td>${escapeHtml(r.jam)}</td>
+        `;
+          petugasTableBody.appendChild(tr);
+        });
+
+        if (!activeRows.length) {
+          petugasTableBody.innerHTML =
+            '<tr><td colspan="7" class="text-muted">Tidak ada petugas aktif saat ini.</td></tr>';
+        }
+
+        // update header summary + footer summary with animation
+        updateSummary(
+          totalPatroliAll,
+          totalOkAll,
+          totalNotOkAll,
+          activeRows.length
+        );
+
+        // render issue list (Not OK)
+        const issues = docs.filter((d) => d.status === "Not OK");
+        renderIssues(issues);
+
+        // detect new docs for toast
+        const currentIds = new Set(docs.map((d) => d.id));
+        docs.forEach((d) => {
+          if (!lastKnownDocIds.has(d.id)) {
+            // new event
+            const msg = `${d.nama || "Petugas"} – ${
+              d.perusahaan || ""
+            } • Area ${d.area || ""} (${d.status || ""}) @ ${d.jam || ""}`;
+            showToast(
+              msg,
+              d.status === "Not OK"
+                ? "linear-gradient(90deg,#e53935,#c62828)"
+                : "linear-gradient(90deg,#2e7d32,#43a047)",
+              d.status === "Not OK"
+            );
+          }
+        });
+        lastKnownDocIds = currentIds;
+      }
+
+      // ---------------- UI UPDATE FUNCTIONS ----------------
+      function updateSummary(
+        totalPatroliAll,
+        totalOkAll,
+        totalNotOkAll,
+        activeCount
+      ) {
+        totalPatroliEl.textContent = totalPatroliAll;
+        totalOkEl.textContent = totalOkAll;
+        totalNotOkEl.textContent = totalNotOkAll;
+        petugasActiveCountEl.textContent = activeCount;
+
+        // footer summary animate on change
+        if (prevTotals.ok !== totalOkAll || prevTotals.nok !== totalNotOkAll) {
+          const newHtml = `<span style="color:var(--ok)">✅ Total OK: ${totalOkAll}</span> &nbsp;&nbsp;|&nbsp;&nbsp; <span style="color:var(--nok)">🔴 Total Not OK: ${totalNotOkAll}</span>`;
+          summaryFooter.innerHTML = newHtml;
+          summaryFooter.classList.add("summary-animate");
+          // sound for change in Not OK (if increases)
+          if (totalNotOkAll > prevTotals.nok) playBeep(520, 160);
+          setTimeout(
+            () => summaryFooter.classList.remove("summary-animate"),
+            450
+          );
+        }
+        prevTotals = {
+          ok: totalOkAll,
+          nok: totalNotOkAll,
+          total: totalPatroliAll,
+        };
+      }
+
+      function renderIssues(issues) {
+        if (!issueListEl) return;
+        if (!issues.length) {
+          issueListEl.innerHTML =
+            '<div class="text-muted">✅ Tidak ada issue hari ini.</div>';
+          return;
+        }
+        issueListEl.innerHTML = "";
+        issues
+          .slice()
+          .reverse()
+          .forEach((it) => {
+            const box = el("div", { class: "issue-item" });
+            box.innerHTML = `<strong>⚠️ ${escapeHtml(
+              it.area || "-"
+            )} – ${escapeHtml(
+              it.perusahaan || "-"
+            )}</strong><br><small>🕒 ${escapeHtml(
+              it.jam || "-"
+            )} • ${escapeHtml(
+              it.keterangan || it.note || "Belum ada keterangan"
+            )}</small><div style="margin-top:8px;text-align:right"><button class="btn btn-sm btn-success">✔️ Tandai Selesai</button></div>`;
+            const btn = box.querySelector("button");
+            btn.addEventListener("click", () => {
+              markIssueDone(it.id);
+            });
+            issueListEl.appendChild(box);
+          });
+      }
+
+      function renderEventLog(items) {
+        latestActivityEl.innerHTML = "";
+        eventItemsEl.innerHTML = "";
+        items.forEach((it) => {
+          const elItem = el(
+            "div",
+            {},
+            `<small>🕒 ${escapeHtml(it.jam || "")} • ${escapeHtml(
+              it.nama || "Petugas"
+            )} – ${escapeHtml(it.perusahaan || "")} • Area ${escapeHtml(
+              it.area || ""
+            )}</small>`
+          );
+          latestActivityEl.appendChild(elItem);
+
+          // event log
+          const logItem = el(
+            "div",
+            {
+              class: "mb-2",
+              style:
+                "border-left:3px solid #ddd;padding-left:8px;cursor:pointer",
+            },
+            `<small>${new Date(it._ts).toLocaleTimeString(
+              "id-ID"
+            )} • ${escapeHtml(it.nama || "Petugas")} – ${escapeHtml(
+              it.perusahaan || ""
+            )} • ${escapeHtml(it.area || "")}</small>`
+          );
+          logItem.addEventListener("click", () => {
+            // focus marker
+            if (markerIndex[it.id]) {
+              map.setView(markerIndex[it.id].getLatLng(), 15);
+              markerIndex[it.id].openPopup();
+            }
+          });
+          eventItemsEl.appendChild(logItem);
+        });
+        // show eventLog overlay if there are items
+        eventLogEl.style.display = items.length ? "block" : "none";
+      }
+
+      // ---------------- ACTIONS ----------------
+      async function markIssueDone(id) {
+        if (!confirm("Tandai issue sebagai selesai?")) return;
+        try {
+          const ref = doc(db, "patroli", id);
+          await updateDoc(ref, { status: "OK" });
+          showToast(
+            "✅ Issue ditandai selesai",
+            "linear-gradient(90deg,#2e7d32,#43a047)",
+            true
+          );
+        } catch (err) {
+          console.error("update fail", err);
+          showToast("❌ Gagal update", "#c62828");
+        }
+      }
+
+      // small helper escape
+      function escapeHtml(s) {
+        if (!s && s !== 0) return "";
+        return String(s).replace(/[&<>"]+/g, function (m) {
+          return (
+            { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[m] || m
+          );
+        });
+      }
+
+      // ---------------- LISTENERS ----------------
+      btnToggleMapMarkers.addEventListener("click", () => {
+        markersOn = !markersOn;
+        if (!markersOn) clearMarkers();
+        else {
+          /* re-run snapshot to add markers - we'll rely on existing snapshot handler */
+        }
+        btnToggleMapMarkers.textContent = markersOn
+          ? "Toggle Markers"
+          : "Markers Paused";
+      });
+
+      // ---------------- INIT ----------------
+      async function initDashboard() {
+        initMap();
+
+        // realtime jadwalPatroli
+        const qJadwal = collection(db, "jadwalPatroli");
+        onSnapshot(qJadwal, (snap) => {
+          shiftData = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+        });
+
+        // realtime patroli hari ini
+        const today = new Date().toLocaleDateString("id-ID");
+        const qPatroli = query(
+          collection(db, "patroli"),
+          where("tanggal", "==", today)
+        );
+        onSnapshot(qPatroli, (snap) => {
+          const arr = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+          processPatroliDocs(arr);
+        });
+      }
+
+      // expose markIssueDone for onclicks if needed
+      window.tandaiSelesai = markIssueDone;
+
+      // run
+      document.addEventListener("DOMContentLoaded", () => {
+        initDashboard().catch((e) => console.error(e));
+      });
+    </script>
+  </body>
+</html>

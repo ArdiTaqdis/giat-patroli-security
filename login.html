@@ -2,7 +2,7 @@
 <html lang="id">
   <head>
     <link rel="manifest" href="manifest.json" />
-    <meta name="theme-color" content="#2196f3" />
+    <meta name="theme-color" content="#d32f2f" />
     <link rel="icon" href="icon-192.png" type="image/png" />
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -68,6 +68,7 @@
       }
     </style>
   </head>
+
   <body>
     <div class="login-box">
       <img
@@ -76,7 +77,7 @@
       />
       <h1>GIAT PATROLI SECURITY</h1>
 
-      <form onsubmit="handleLogin(event)">
+      <form id="loginForm">
         <input
           type="text"
           id="nipInput"
@@ -89,39 +90,57 @@
       <div class="footer">© 2025 Giat Security Patrol</div>
     </div>
 
-    <script>
-      const scriptURL =
-        "https://script.google.com/macros/s/AKfycbxy9J8w86sn_5mctVRQNpGX7BK-XRhXMoid7PgsYDdOPOx1z3QVn2iyfc5oal4sOS9dyA/exec";
+    <script type="module">
+      import { db } from "./js/firebase.js";
+      import {
+        doc,
+        getDoc,
+      } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-      async function handleLogin(e) {
-        e.preventDefault();
-        const nip = document.getElementById("nipInput").value.trim();
-        if (!nip) return;
-
-        try {
-          const res = await fetch(`${scriptURL}?nip=${nip}`);
-          const data = await res.json();
-
-          if (data.status === "success") {
-            // simpan semua data yang dibutuhkan dashboard
-            localStorage.setItem(
-              "userData",
-              JSON.stringify({
-                nip: data.nip,
-                nama: data.nama,
-                perusahaan: data.perusahaan,
-                foto: data.foto || "",
-              })
-            );
-            // arahkan ke dashboard
-            window.location.href = "dashboard/dashboard.html";
-          } else {
-            alert("❌ NIP tidak ditemukan.");
-          }
-        } catch (err) {
-          alert("❌ Gagal menghubungi server: " + err.message);
-        }
+      // ✅ AUTO LOGIN — hanya satu kali pengecekan
+      const existingUser = JSON.parse(
+        localStorage.getItem("userData") || "null"
+      );
+      if (existingUser?.nip && existingUser?.nama) {
+        console.log("🔓 Auto-login:", existingUser.nama);
+        window.location.href = "dashboard/dashboard.html";
       }
+
+      // 🔑 Proses login manual
+      document
+        .getElementById("loginForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const nip = document.getElementById("nipInput").value.trim();
+          if (!nip) return;
+
+          try {
+            const userRef = doc(db, "dataUser", nip);
+            const snap = await getDoc(userRef);
+
+            if (snap.exists()) {
+              const data = snap.data();
+
+              localStorage.setItem(
+                "userData",
+                JSON.stringify({
+                  nip: nip,
+                  nama: data.nama,
+                  perusahaanId: data.perusahaanId || "",
+                  perusahaanNama: data.perusahaanNama || data.perusahaan || "-",
+                  foto: data.fotoUrl || "",
+                })
+              );
+
+              window.location.href = "dashboard/dashboard.html";
+            } else {
+              alert("❌ NIP tidak ditemukan.");
+            }
+          } catch (err) {
+            alert("❌ Error Firestore: " + err.message);
+            console.error(err);
+          }
+        });
     </script>
   </body>
 </html>

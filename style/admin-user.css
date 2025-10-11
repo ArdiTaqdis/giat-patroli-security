@@ -1,0 +1,58 @@
+body {
+  font-family: Arial, sans-serif;
+  background: #f2f2f2;
+  margin: 0;
+  padding: 20px;
+}
+.judul {
+  text-align: center;
+  margin-bottom: 20px;
+}
+.container {
+  max-width: 400px;
+  margin: auto;
+  background: #fff;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+input,
+button {
+  width: 100%;
+  margin-bottom: 12px;
+  padding: 10px;
+  font-size: 16px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+}
+button {
+  background-color: #2196f3;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+button:hover {
+  background-color: #1976d2;
+}
+.foto-preview {
+  text-align: center;
+  margin-bottom: 12px;
+}
+.foto-preview img {
+  max-width: 100%;
+  border-radius: 10px;
+  display: none;
+}
+#statusUser {
+  margin-top: 10px;
+  font-weight: bold;
+  color: #d32f2f;
+  text-align: center;
+}
+
+#fotoUserPreview {
+  display: none;
+  max-width: 150px;
+  border-radius: 8px;
+  margin-top: 10px;
+}

@@ -1,61 +1,127 @@
-// Nama cache baru → ubah versi jika update file agar refresh otomatis
-const CACHE_NAME = "patroli-v2";
+// ===============================
+// 🚀 GIAT PATROLI SERVICE WORKER
+// ===============================
 
-// Daftar file yang WAJIB dicache agar PWA tetap jalan offline
+// 🧩 Ganti versi ini setiap kali update file, supaya cache auto refresh
+const CACHE_NAME = "patroli-v4.1";
+
+// 🧩 File yang wajib dicache untuk offline mode
 const urlsToCache = [
-  "/index.html",
-  "/dashboard.html",
-  "/form.html",
-  "/pending.html",
-  "/riwayat.html",
-  "/style/style.css",
-  "/js/form.js",
-  "/js/pending.js",
-  "/icon-192.png",
-  "/icon-512.png",
+  "./index.html",
+  "./login.html",
+  "./dashboard/dashboard.html",
+  "./pages/form.html",
+  "./pages/pending.html",
+  "./pages/jadwalpatroli.html",
+  "./style/style.css",
+  "./js/form.js",
+  "./js/pending.js",
+  "./icon-192.png",
+  "./icon-512.png",
 ];
 
-// INSTALL: Cache semua file statis
+// ===============
+// 📦 INSTALL
+// ===============
 self.addEventListener("install", (event) => {
+  console.log("📦 SW: Install event — caching static files...");
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(urlsToCache))
+    caches.open(CACHE_NAME).then(async (cache) => {
+      for (let url of urlsToCache) {
+        try {
+          await cache.add(url);
+          console.log("✅ Cached:", url);
+        } catch (err) {
+          console.warn("⚠️ Gagal cache:", url, err);
+        }
+      }
+    })
   );
-  self.skipWaiting(); // langsung aktif
+  self.skipWaiting(); // 🔁 Langsung aktif
 });
 
-// ACTIVATE: Hapus cache lama jika versi berubah
+// ===============
+// 🧹 ACTIVATE
+// ===============
 self.addEventListener("activate", (event) => {
+  console.log("♻️ SW: Activate — membersihkan cache lama...");
   event.waitUntil(
-    caches
-      .keys()
-      .then((keyList) =>
-        Promise.all(
-          keyList.map((key) => {
-            if (key !== CACHE_NAME) return caches.delete(key);
-          })
-        )
+    caches.keys().then((keys) =>
+      Promise.all(
+        keys.map((key) => {
+          if (key !== CACHE_NAME) {
+            console.log("🗑️ Hapus cache lama:", key);
+            return caches.delete(key);
+          }
+        })
       )
-      .then(() => self.clients.claim())
+    )
   );
+
+  // ⚡ Auto-claim agar SW baru langsung aktif
+  self.clients.claim();
 });
 
-// FETCH: Strategi cache-first, fallback ke network
+// ===============
+// 🌐 FETCH HANDLER
+// ===============
 self.addEventListener("fetch", (event) => {
-  const request = event.request;
+  const req = event.request;
+  const url = req.url;
 
-  // Abaikan permintaan ke Google Apps Script (API backend) → selalu ambil dari network
-  if (request.url.includes("script.google.com")) {
-    return; // biarkan browser fetch normal
+  // ⚙️ Bypass cache untuk API & halaman sensitif (login, dashboard)
+  if (
+    url.includes("script.google.com") ||
+    url.includes("login.html") ||
+    url.includes("dashboard.html")
+  ) {
+    event.respondWith(fetch(req).catch(() => caches.match(req)));
+    return;
   }
 
+  // 🧠 Cache-first untuk file statis, fallback ke network
   event.respondWith(
-    caches.match(request).then(
-      (response) =>
-        response ||
-        fetch(request).catch(() =>
-          // fallback opsional: jika offline dan file tidak ada di cache
-          caches.match("/index.html")
-        )
-    )
+    caches.match(req).then((cachedRes) => {
+      return (
+        cachedRes ||
+        fetch(req)
+          .then((networkRes) => {
+            // Cache file baru (stale-while-revalidate)
+            return caches.open(CACHE_NAME).then((cache) => {
+              if (req.method === "GET" && req.url.startsWith("http")) {
+                cache.put(req, networkRes.clone());
+              }
+              return networkRes;
+            });
+          })
+          .catch(() => caches.match("/index.html"))
+      );
+    })
+  );
+});
+
+// ===============
+// 🔁 AUTO REFRESH
+// ===============
+self.addEventListener("message", (event) => {
+  if (event.data === "SKIP_WAITING") {
+    console.log("⚡ SW: Skip waiting — activating update now...");
+    self.skipWaiting();
+  }
+});
+
+// ===============
+// 💡 NOTIFIKASI UPDATE
+// ===============
+self.addEventListener("activate", (event) => {
+  event.waitUntil(
+    (async () => {
+      const allClients = await self.clients.matchAll({
+        includeUncontrolled: true,
+      });
+      for (const client of allClients) {
+        client.postMessage({ type: "NEW_VERSION_AVAILABLE" });
+      }
+    })()
   );
 });

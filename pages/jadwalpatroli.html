@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Jadwal Patroli</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background: #fff6f6;
+        margin: 0;
+        padding: 20px;
+      }
+      header {
+        background: linear-gradient(135deg, #e53935, #ff7043);
+        padding: 20px;
+        text-align: center;
+        color: #fff;
+        border-radius: 8px;
+      }
+      header h1 {
+        margin: 0;
+        font-size: 1.6rem;
+      }
+      .shift {
+        margin: 20px auto;
+        padding: 15px;
+        max-width: 900px;
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      }
+      .shift h2 {
+        color: #b71c1c;
+        margin-bottom: 10px;
+      }
+      .patroli-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        gap: 14px;
+      }
+      .card {
+        background: #ffecec;
+        border-radius: 12px;
+        padding: 16px;
+        box-shadow: 0 6px 18px rgba(224, 67, 54, 0.08);
+        position: relative;
+        transition: background 0.3s;
+      }
+      .card h3 {
+        margin: 0 0 6px;
+        font-size: 1rem;
+        color: #b71c1c;
+      }
+      .card.done {
+        background: #e8f5e9;
+        border: 2px solid #43a047;
+      }
+      .card.warning {
+        background: #fff3cd;
+        border: 2px solid #ff9800;
+      }
+      .status-msg {
+        margin: 8px 0;
+        font-size: 0.9rem;
+      }
+      .status-msg.warning {
+        color: #e65100;
+        font-weight: bold;
+      }
+      .status-msg.success {
+        color: #2e7d32;
+        font-weight: bold;
+      }
+      .badge {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        padding: 4px 8px;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: bold;
+        color: #fff;
+      }
+      .badge-progress {
+        background: #e53935;
+      }
+      .badge-pending {
+        background: #fb8c00;
+      }
+      .badge-done {
+        background: #43a047;
+      }
+      .btn {
+        display: block;
+        width: 100%;
+        margin-top: 8px;
+        padding: 8px;
+        border-radius: 8px;
+        border: none;
+        font-weight: 600;
+        cursor: pointer;
+      }
+      .btn-patroli {
+        background: #e53935;
+        color: #fff;
+      }
+      .btn-patroli:disabled {
+        background: #ccc;
+        cursor: not-allowed;
+      }
+      .btn-small {
+        font-size: 0.75rem;
+        padding: 5px 8px;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        color: #fff;
+        position: absolute;
+        bottom: 10px;
+      }
+      .btn-kirim {
+        background: #43a047;
+        left: 10px;
+      }
+      .btn-pending {
+        background: #fb8c00;
+        right: 10px;
+      }
+
+      /* Progress bar total shift */
+      #shiftProgress {
+        margin: 10px 0;
+        height: 10px;
+        width: 100%;
+        background: #f3f3f3;
+        border-radius: 8px;
+        overflow: hidden;
+      }
+      #shiftProgressBar {
+        height: 100%;
+        width: 0%;
+        background: linear-gradient(90deg, #e53935, #ff7043);
+        transition: width 0.5s ease;
+      }
+
+      /* ==== HEADER GAYA PROFESIONAL ==== */
+      .patroli-header {
+        background: linear-gradient(135deg, #001f3f, #000000);
+        padding: 35px 20px;
+        text-align: center;
+        color: #fff;
+        border-radius: 0 0 18px 18px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .patroli-header::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: radial-gradient(
+          circle at 30% 20%,
+          rgba(255, 255, 255, 0.08),
+          transparent 70%
+        );
+      }
+
+      .patroli-header h1 {
+        font-size: 1.8rem;
+        font-weight: 800;
+        letter-spacing: 1.2px;
+        margin: 0;
+        text-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+      }
+
+      #tagline {
+        font-size: 0.95rem;
+        font-style: italic;
+        margin-top: 6px;
+        color: #b3d9ff;
+        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+      }
+
+      .id-badge {
+        display: inline-block;
+        margin-top: 12px;
+        background: rgba(255, 255, 255, 0.15);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 30px;
+        padding: 8px 18px;
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: #fff;
+        backdrop-filter: blur(6px);
+        box-shadow: 0 0 8px rgba(255, 255, 255, 0.15);
+        transition: all 0.3s ease;
+      }
+
+      .id-badge:hover {
+        background: rgba(255, 255, 255, 0.25);
+        transform: scale(1.05);
+      }
+      /* ==== HEADER GAYA PROFESIONAL ==== */
+      .patroli-header {
+        background: linear-gradient(135deg, #001f3f, #000000);
+        padding: 35px 20px;
+        text-align: center;
+        color: #fff;
+        border-radius: 0 0 18px 18px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .patroli-header::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: radial-gradient(
+          circle at 30% 20%,
+          rgba(255, 255, 255, 0.08),
+          transparent 70%
+        );
+      }
+
+      .patroli-header h1 {
+        font-size: 1.8rem;
+        font-weight: 800;
+        letter-spacing: 1.2px;
+        margin: 0;
+        text-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+      }
+
+      #tagline {
+        font-size: 0.95rem;
+        font-style: italic;
+        margin-top: 6px;
+        color: #b3d9ff;
+        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+      }
+
+      .id-badge {
+        display: inline-block;
+        margin-top: 12px;
+        background: rgba(255, 255, 255, 0.15);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 30px;
+        padding: 8px 18px;
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: #fff;
+        backdrop-filter: blur(6px);
+        box-shadow: 0 0 8px rgba(255, 255, 255, 0.15);
+        transition: all 0.3s ease;
+      }
+
+      .id-badge:hover {
+        background: rgba(255, 255, 255, 0.25);
+        transform: scale(1.05);
+      }
+      .btn-back {
+        position: absolute;
+        top: 15px;
+        left: 15px;
+        background: rgba(255, 255, 255, 0.15);
+        border: 1px solid rgba(255, 255, 255, 0.4);
+        border-radius: 8px;
+        color: #fff;
+        font-weight: 600;
+        padding: 6px 12px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+      .btn-back:hover {
+        background: rgba(255, 255, 255, 0.3);
+      }
+    </style>
+  </head>
+  <body>
+    <header class="patroli-header">
+      <div class="header-content">
+        <h1>JADWAL PATROLI</h1>
+        <p id="tagline">
+          Menjalankan tugas dengan disiplin dan tanggung jawab demi keamanan
+          bersama.
+        </p>
+        <div id="namaPetugas" class="id-badge">👮 Nama Petugas</div>
+      </div>
+    </header>
+    <div>
+      <p style="text-align: center; color: #777; margin-top: 10 px">
+        🕓 Hanya menampilkan shift yang sedang berjalan sekarang
+        <button id="btnBackDashboard" class="btn-back">← Dashboard</button>
+      </p>
+    </div>
+
+    <main id="jadwalContainer"></main>
+
+    <script type="module">
+      import { db } from "../js/firebase.js";
+      import {
+        collection,
+        getDocs,
+      } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+      const jadwalContainer = document.getElementById("jadwalContainer");
+      const userData = JSON.parse(localStorage.getItem("userData"));
+      if (userData) {
+        const namaEl = document.getElementById("namaPetugas");
+        namaEl.textContent = `👮 ${userData.nama}`;
+      }
+
+      if (!userData) {
+        alert("⚠️ Silakan login dulu.");
+        window.location.href = "../login.html";
+      }
+
+      function generatePatroli(jamMulai, jamSelesai, interval) {
+        const list = [];
+        let [hMulai] = jamMulai.split(":").map(Number);
+        let [hSelesai] = jamSelesai.split(":").map(Number);
+        if (hSelesai <= hMulai) hSelesai += 24;
+        let current = hMulai;
+        const labels = ["A", "B", "C", "D"];
+        for (let i = 0; i < labels.length; i++) {
+          if (current + interval <= hSelesai) {
+            const start = `${String(current % 24).padStart(2, "0")}:00`;
+            const end = `${String((current + interval) % 24).padStart(
+              2,
+              "0"
+            )}:00`;
+            list.push({ label: labels[i], start, end });
+            current += interval;
+          }
+        }
+        return list;
+      }
+
+      async function loadShifts() {
+        const snap = await getDocs(collection(db, "jadwalPatroli"));
+        jadwalContainer.innerHTML = "";
+
+        const now = new Date();
+        const currentHour = now.getHours();
+        const currentMinute = now.getMinutes();
+        const currentTime = currentHour + currentMinute / 60;
+
+        const filterShiftByTime =
+          localStorage.getItem("filterShiftByTime") === "true";
+        localStorage.removeItem("filterShiftByTime"); // reset flag setelah dipakai
+
+        let shiftAktifDitemukan = false;
+
+        snap.forEach((docSnap) => {
+          const data = docSnap.data();
+
+          if (data.perusahaanId === userData.perusahaanId) {
+            // hitung waktu shift
+            // hitung waktu shift
+            let [mulaiH, mulaiM] = data.jamMulai.split(":").map(Number);
+            let [selesaiH, selesaiM] = data.jamSelesai.split(":").map(Number);
+            let startTime = mulaiH + mulaiM / 60;
+            let endTime = selesaiH + selesaiM / 60;
+
+            // kalau melewati tengah malam
+            const crossesMidnight =
+              data.crossesMidnight || endTime <= startTime;
+            if (crossesMidnight) endTime += 24;
+
+            // waktu sekarang (jam desimal)
+            let currentHour = now.getHours();
+            let currentMinute = now.getMinutes();
+            let currentTime = currentHour + currentMinute / 60;
+
+            // cek apakah sekarang termasuk shift ini
+            let isShiftActive = false;
+            if (crossesMidnight) {
+              // kalau shift malam: aktif kalau sekarang >= startTime ATAU sekarang + 24 < endTime
+              isShiftActive =
+                currentTime >= startTime || currentTime + 24 < endTime;
+            } else {
+              // shift normal: aktif kalau sekarang di antara start dan end
+              isShiftActive = currentTime >= startTime && currentTime < endTime;
+            }
+
+            // skip kalau mode filter aktif dan shift tidak sedang berjalan
+            if (filterShiftByTime && !isShiftActive) return;
+
+            shiftAktifDitemukan = true;
+
+            // ===== RENDER SHIFT NORMAL SEPERTI SEBELUMNYA =====
+            const shiftDiv = document.createElement("div");
+            shiftDiv.className = "shift";
+            shiftDiv.innerHTML = `
+                  <h2>
+            ${data.nama} (${data.jamMulai} - ${data.jamSelesai}${
+              data.crossesMidnight ? " (+1)" : ""
+            })
+          </h2>
+
+        <div id="shiftProgress">
+          <div id="shiftProgressBar-${docSnap.id}"></div>
+        </div>
+        <div class="patroli-cards" id="patroli-${docSnap.id}"></div>`;
+            jadwalContainer.appendChild(shiftDiv);
+
+            const patroliList = generatePatroli(
+              data.jamMulai,
+              data.jamSelesai,
+              data.interval
+            );
+            const container = shiftDiv.querySelector(`#patroli-${docSnap.id}`);
+
+            let doneCount = 0;
+
+            patroliList.forEach((p, idx) => {
+              const key = `progress-${docSnap.id}-${p.label}`;
+              const prog = JSON.parse(localStorage.getItem(key) || "{}");
+              const areaDone = prog.areaDone || 0;
+              const total = 5;
+              const pending = prog.pending || 0;
+
+              if (areaDone === total && pending === 0) doneCount++;
+
+              const prevDone =
+                idx === 0
+                  ? true
+                  : (() => {
+                      const prevLabel = patroliList[idx - 1].label;
+                      const prev = JSON.parse(
+                        localStorage.getItem(
+                          `progress-${docSnap.id}-${prevLabel}`
+                        ) || "{}"
+                      );
+                      return (
+                        prev.areaDone === total && (prev.pending || 0) === 0
+                      );
+                    })();
+
+              const card = document.createElement("div");
+              card.className = "card";
+              card.innerHTML = `
+          <h3>Patroli ${p.label}</h3>
+          <div class="badge" id="badge-${docSnap.id}-${p.label}"></div>
+          <div>🕒 ${p.start} - ${p.end}</div>
+          <div>Progress Area: ${areaDone} dari ${total}</div>
+          <div>Pending: ${pending > 0 ? pending + " data" : "Tidak ada"}</div>
+          <div id="status-${docSnap.id}-${p.label}" class="status-msg"></div>
+          <button class="btn btn-patroli" id="btn-${docSnap.id}-${p.label}"
+            onclick="mulaiPatroli('${docSnap.id}','${
+                p.label
+              }')">🚨 Mulai / Lanjutkan</button>
+          <button class="btn-small btn-kirim"
+            onclick="kirimPatroli('${docSnap.id}','${
+                p.label
+              }')">✅ Kirim</button>          
+        `;
+              container.appendChild(card);
+
+              const status = document.getElementById(
+                `status-${docSnap.id}-${p.label}`
+              );
+              const badge = document.getElementById(
+                `badge-${docSnap.id}-${p.label}`
+              );
+              const btn = document.getElementById(
+                `btn-${docSnap.id}-${p.label}`
+              );
+
+              if (areaDone === total && pending > 0) {
+                status.innerText = `⚠️ Semua area terisi, masih ada ${pending} data pending`;
+                card.classList.add("warning");
+                badge.innerText = "PENDING";
+                badge.className = "badge badge-pending";
+                btn.disabled = true;
+                btn.innerText = "🔒 Selesai (Pending)";
+              } else if (areaDone === total && pending === 0) {
+                status.innerText = `✅ Patroli ${p.label} selesai 🎉`;
+                card.classList.add("done");
+                badge.innerText = "SELESAI";
+                badge.className = "badge badge-done";
+                btn.disabled = true;
+                btn.innerText = "✔️ Sudah Selesai";
+              } else {
+                status.innerText = `Progress patroli: ${areaDone}/${total} area`;
+                badge.innerText = "PROGRESS";
+                badge.className = "badge badge-progress";
+              }
+
+              if (!prevDone && idx > 0) {
+                btn.disabled = true;
+                btn.innerText = "🔒 Belum bisa dimulai";
+              }
+            });
+
+            const percent = Math.round((doneCount / patroliList.length) * 100);
+            const bar = document.getElementById(
+              `shiftProgressBar-${docSnap.id}`
+            );
+            if (bar) bar.style.width = `${percent}%`;
+          }
+        });
+
+        if (filterShiftByTime && !shiftAktifDitemukan) {
+          jadwalContainer.innerHTML = `
+      <div style="text-align:center; color:#777; margin-top:50px;">
+        🕓 Tidak ada shift patroli yang sedang berjalan saat ini.
+      </div>`;
+        }
+        checkPendingStatus();
+      }
+
+      window.mulaiPatroli = (shiftId, patroli) => {
+        localStorage.setItem("shiftAktif", shiftId);
+        localStorage.setItem("patroliAktif", patroli);
+        window.location.href = "../pages/form.html";
+      };
+      window.kirimPatroli = (shiftId, patroli) => {
+        localStorage.setItem("shiftAktif", shiftId);
+        localStorage.setItem("patroliAktif", patroli);
+        window.location.href = "../pages/pending.html";
+      };
+      window.lihatPending = (shiftId, patroli) => {
+        window.location.href = "../pages/pending.html";
+      };
+
+      loadShifts();
+
+      // ✅ Cek apakah masih ada data pending di localStorage
+      function checkPendingStatus() {
+        let adaPending = false;
+        for (let i = 1; i <= 5; i++) {
+          if (localStorage.getItem(`patroliArea${i}`)) {
+            adaPending = true;
+            break;
+          }
+        }
+
+        // 🔹 Ambil semua tombol kirim di halaman jadwal patroli
+        const btns = document.querySelectorAll(".btn-small.btn-kirim");
+
+        if (!adaPending) {
+          btns.forEach((btn) => {
+            btn.disabled = true;
+            btn.textContent = "✅ Tidak ada data pending";
+            btn.style.background = "#9e9e9e";
+            btn.style.cursor = "not-allowed";
+          });
+        }
+      }
+    </script>
+    <!-- ✅ Tombol Reset Manual -->
+    <button
+      id="resetBtn"
+      style="
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background: #b71c1c;
+        color: #fff;
+        border: none;
+        padding: 10px 16px;
+        border-radius: 10px;
+        font-weight: 600;
+        cursor: pointer;
+        box-shadow: 0 3px 6px rgba(0, 0, 0, 0.3);
+      "
+      disabled
+    >
+      🔄 Reset Semua Patroli
+    </button>
+
+    <script type="module">
+      // === AUTO RESET DAN MANUAL RESET ===
+
+      // ✅ Fungsi Reset Global
+      function resetAllPatroli() {
+        for (let key in localStorage) {
+          if (
+            key.startsWith("patroliArea") ||
+            key.startsWith("progress-") ||
+            key === "patroliProgress" ||
+            key === "lastPatroliDone"
+          ) {
+            localStorage.removeItem(key);
+          }
+        }
+        alert("✅ Semua data patroli direset. Siap untuk hari baru!");
+        location.reload();
+      }
+
+      // ✅ Auto Reset Tiap 24 Jam
+      (function autoResetPatroli() {
+        const lastDone = localStorage.getItem("lastPatroliDone");
+        const now = Date.now();
+
+        // kalau belum pernah patroli, abaikan
+        if (!lastDone) return;
+
+        const elapsedHours = (now - Number(lastDone)) / (1000 * 60 * 60);
+        if (elapsedHours >= 24) {
+          console.log("⏰ Reset otomatis: sudah lebih dari 24 jam.");
+          resetAllPatroli();
+        }
+      })();
+
+      // ✅ Simpan waktu terakhir patroli selesai (di-set dari pending.js)
+      // Tambahkan di pending.js bagian akhir kirim semua:
+      // localStorage.setItem("lastPatroliDone", Date.now());
+
+      // ✅ Tombol manual reset
+      document.getElementById("resetBtn").addEventListener("click", () => {
+        if (confirm("⚠️ Yakin ingin mereset semua data patroli hari ini?")) {
+          resetAllPatroli();
+        }
+      });
+
+      // Tambahkan di bawah tombol reset:
+      const resetBtn = document.getElementById("resetBtn");
+      const lastDone = localStorage.getItem("lastPatroliDone");
+      if (lastDone) {
+        const elapsed = (
+          (Date.now() - Number(lastDone)) /
+          (1000 * 60 * 60)
+        ).toFixed(1);
+        const remaining = Math.max(0, 24 - elapsed).toFixed(1);
+        resetBtn.title = `Data patroli akan direset otomatis dalam ${remaining} jam lagi`;
+      }
+    </script>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const backBtn = document.getElementById("btnBackDashboard");
+        if (backBtn) {
+          backBtn.addEventListener("click", () => {
+            // Efek halus (fade-out)
+            document.body.style.opacity = "0";
+            setTimeout(() => {
+              window.location.href = "../dashboard/dashboard.html";
+            }, 200);
+          });
+        }
+
+        // Intercept tombol "Back" di browser
+        window.addEventListener("popstate", () => {
+          window.location.href = "../dashboard/dashboard.html";
+        });
+
+        // Dorong ke history agar popstate bisa aktif
+        history.pushState(null, null, location.href);
+      });
+    </script>
+  </body>
+</html>

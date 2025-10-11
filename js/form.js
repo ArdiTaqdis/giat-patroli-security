@@ -1,24 +1,17 @@
 const maxArea = 5;
 let areaNow = 1;
-const areaFotoCache = {};
-const beforeUnloadHandler = (e) => {
-  e.preventDefault();
-  e.returnValue = "";
-};
-
+window.areaFileCache = window.areaFileCache || {};
 let nip, nama, perusahaan, fotoUser;
 
 document.addEventListener("DOMContentLoaded", () => {
-  // window.addEventListener("beforeunload", beforeUnloadHandler);
-
   // ==== Ambil data user ====
   const userData = localStorage.getItem("userData");
   if (userData) {
     const u = JSON.parse(userData);
     nip = u.nip;
     nama = u.nama;
-    perusahaan = u.perusahaan;
-    fotoUser = u.foto;
+    perusahaan = u.perusahaan || u.perusahaanNama;
+    fotoUser = u.foto || u.fotoUrl;
   } else {
     nip = localStorage.getItem("nipLogin");
     nama = localStorage.getItem("nama");
@@ -38,30 +31,27 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("perusahaan").innerText = perusahaan;
   if (fotoUser) document.getElementById("fotoUser").src = fotoUser;
 
-  // ==== Tentukan area yang sedang dikerjakan ====
+  // ==== Tentukan area aktif ====
   const progress = JSON.parse(localStorage.getItem("patroliProgress") || "{}");
   const now = Date.now();
   if (!progress.currentArea) {
     localStorage.setItem(
       "patroliProgress",
-      JSON.stringify({
-        currentArea: 1,
-        startTime: now,
-      })
+      JSON.stringify({ currentArea: 1, startTime: now })
     );
     areaNow = 1;
   } else {
-    // reset otomatis setelah 12 jam
-    if (now - progress.startTime > 12 * 60 * 60 * 1000) {
+    if (now - progress.startTime > 8 * 60 * 60 * 1000) {
       resetPatroli();
       areaNow = 1;
     } else {
       areaNow = progress.currentArea;
     }
   }
-  updateAreaLabel();
+  updateAreaUI();
+  cekDisable();
 
-  // ==== Waktu dan Lokasi ====
+  // ==== Waktu & Lokasi ====
   const today = new Date();
   document.getElementById("tanggal").innerText =
     today.toLocaleDateString("id-ID");
@@ -82,12 +72,12 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
+// ========== UTIL ==========
 function updateJam() {
   document.getElementById("jam").innerText = new Date().toLocaleTimeString(
     "id-ID"
   );
 }
-
 function getAlamatFromCoords(lat, lon) {
   const url = `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`;
   fetch(url, { headers: { "User-Agent": "patroli-app/1.0" } })
@@ -102,7 +92,18 @@ function getAlamatFromCoords(lat, lon) {
       ).innerText = `${lat}, ${lon} (❌ alamat gagal)`;
     });
 }
+function updateAreaUI() {
+  document.getElementById("areaNow").innerText = areaNow;
+  document.getElementById("areaTitle").innerText = `Area ${areaNow}`;
+  const progressPercent = Math.round(((areaNow - 1) / maxArea) * 100);
+  const bar = document.getElementById("progressBar");
+  if (bar) {
+    bar.style.width = `${progressPercent}%`;
+    bar.innerText = `${progressPercent}%`;
+  }
+}
 
+// ========== AMBIL FOTO ==========
 async function ambilFoto() {
   const input = document.createElement("input");
   input.type = "file";
@@ -114,153 +115,213 @@ async function ambilFoto() {
     const file = input.files[0];
     if (!file) return;
 
+    // ✅ Kompres + watermark
+    const watermarkedBlob = await compressAndWatermark(file, nama, perusahaan);
+    const finalFile = new File([watermarkedBlob], file.name, {
+      type: "image/jpeg",
+    });
+
+    window.areaFileCache[`area${areaNow}`] = finalFile;
+
     const reader = new FileReader();
-    reader.onload = async () => {
-      const withText = await addWatermarkAndResize(
-        reader.result,
-        nama,
-        perusahaan,
-        new Date().toLocaleString("id-ID")
-      );
-      document.getElementById("fotoPreviewMini").src = withText;
+    reader.onload = () => {
+      const base64Preview = reader.result;
+      document.getElementById("fotoPreviewMini").src = base64Preview;
       document.getElementById("fotoPreviewMini").style.display = "block";
-      areaFotoCache[`area${areaNow}`] = withText;
     };
-    reader.readAsDataURL(file);
+    reader.readAsDataURL(finalFile);
   };
 }
 
-function addWatermarkAndResize(
-  base64Str,
+function compressAndWatermark(
+  file,
   namaPetugas,
   perusahaanPetugas,
-  waktu,
   maxWidth = 400,
-  quality = 0.7
+  quality = 0.5
 ) {
   return new Promise((resolve) => {
-    const img = new Image();
-    img.src = base64Str;
-    img.onload = () => {
-      const scale = Math.min(1, maxWidth / img.width);
-      const w = Math.round(img.width * scale);
-      const h = Math.round(img.height * scale);
-      const canvas = document.createElement("canvas");
-      const ctx = canvas.getContext("2d");
-      canvas.width = w;
-      canvas.height = h;
-      ctx.drawImage(img, 0, 0, w, h);
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = (event) => {
+      const img = new Image();
+      img.src = event.target.result;
+      img.onload = () => {
+        const scale = Math.min(1, maxWidth / img.width);
+        const w = Math.round(img.width * scale);
+        const h = Math.round(img.height * scale);
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
+        canvas.width = w;
+        canvas.height = h;
+        ctx.drawImage(img, 0, 0, w, h);
 
-      ctx.font = `${Math.floor(w * 0.035)}px Arial`;
-      ctx.fillStyle = "white";
-      ctx.strokeStyle = "black";
-      ctx.lineWidth = 3;
-      ctx.textBaseline = "bottom";
-      const m = 20;
+        ctx.font = `${Math.floor(w * 0.04)}px Arial`;
+        ctx.fillStyle = "white";
+        ctx.strokeStyle = "black";
+        ctx.lineWidth = 3;
+        ctx.textBaseline = "bottom";
+        const margin = 15;
+        const waktu = new Date().toLocaleString("id-ID");
 
-      ctx.strokeText(`Nama: ${namaPetugas}`, m, h - 3 * m);
-      ctx.fillText(`Nama: ${namaPetugas}`, m, h - 3 * m);
-      ctx.strokeText(`Perusahaan: ${perusahaanPetugas}`, m, h - 2 * m);
-      ctx.fillText(`Perusahaan: ${perusahaanPetugas}`, m, h - 2 * m);
-      ctx.strokeText(`Tanggal & Waktu: ${waktu}`, m, h - m);
-      ctx.fillText(`Tanggal & Waktu: ${waktu}`, m, h - m);
+        ctx.strokeText(`Nama: ${namaPetugas}`, margin, h - 3 * margin);
+        ctx.fillText(`Nama: ${namaPetugas}`, margin, h - 3 * margin);
+        ctx.strokeText(
+          `Perusahaan: ${perusahaanPetugas}`,
+          margin,
+          h - 2 * margin
+        );
+        ctx.fillText(
+          `Perusahaan: ${perusahaanPetugas}`,
+          margin,
+          h - 2 * margin
+        );
+        ctx.strokeText(`Waktu: ${waktu}`, margin, h - margin);
+        ctx.fillText(`Waktu: ${waktu}`, margin, h - margin);
 
-      resolve(canvas.toDataURL("image/jpeg", quality));
+        canvas.toBlob((blob) => resolve(blob), "image/jpeg", quality);
+      };
     };
   });
 }
 
-function resizeImage(base64Str, maxWidth = 400, quality = 0.7) {
-  return new Promise((resolve) => {
-    let img = new Image();
-    img.src = base64Str;
-    img.onload = () => {
-      const canvas = document.createElement("canvas");
-      const scale = maxWidth / img.width;
-      canvas.width = maxWidth;
-      canvas.height = img.height * scale;
-      const ctx = canvas.getContext("2d");
-      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-      resolve(canvas.toDataURL("image/jpeg", quality));
-    };
-  });
-}
-
-function updateAreaLabel() {
-  document.getElementById("areaNow").innerText = areaNow;
-  document.getElementById("areaTitle").innerText = `Area ${areaNow}`;
-}
-
-// ==== Simpan Per Area ====
+// ========== SIMPAN PER AREA ==========
 function simpanArea() {
-  const foto = areaFotoCache[`area${areaNow}`];
   const ket = document.getElementById("keterangan").value.trim();
-  if (!foto) {
-    alert("Ambil foto sebelum menyimpan.");
+  const status = document.getElementById("statusArea")
+    ? document.getElementById("statusArea").value
+    : "OK";
+
+  if (status === "Not OK" && ket === "") {
+    alert("⚠️ Keterangan wajib diisi jika status 'Not OK'!");
+    document.getElementById("keterangan").focus();
     return;
   }
 
+  const file = window.areaFileCache[`area${areaNow}`];
+  if (!file) {
+    alert("📸 Ambil foto area terlebih dahulu sebelum menyimpan.");
+    return;
+  }
+
+  // 🔹 Tampilkan overlay loading
   document.getElementById("loadingOverlay").style.display = "flex";
 
   const lokasi = document.getElementById("lokasi").innerText;
   const tanggal = document.getElementById("tanggal").innerText;
   const jam = document.getElementById("jam").innerText;
 
-  // simpan data area ke localStorage
-  localStorage.setItem(
-    `patroliArea${areaNow}`,
-    JSON.stringify({
-      nip,
-      nama,
-      perusahaan,
-      tanggal,
-      jam,
-      lokasi,
-      foto,
-      keterangan: ket,
-      timestamp: new Date().toISOString(),
-    })
-  );
+  const reader = new FileReader();
+  reader.onload = () => {
+    const base64File = reader.result;
 
-  // update progress
-  const nextArea = areaNow + 1;
-  const progress = JSON.parse(localStorage.getItem("patroliProgress") || "{}");
-  if (nextArea <= maxArea) {
+    // ✅ Simpan ke localStorage
     localStorage.setItem(
-      "patroliProgress",
+      `patroliArea${areaNow}`,
       JSON.stringify({
-        currentArea: nextArea,
-        startTime: progress.startTime || Date.now(),
+        nip,
+        nama,
+        perusahaan,
+        tanggal,
+        jam,
+        lokasi,
+        foto: file.name,
+        fotoPreview: document.getElementById("fotoPreviewMini").src || "",
+        fotoBase64: base64File,
+        keterangan: ket,
+        status,
+        timestamp: new Date().toISOString(),
       })
     );
-  } else {
-    // ✅ semua area selesai → reset ke area 1
-    localStorage.setItem(
-      "patroliProgress",
-      JSON.stringify({
-        currentArea: 1, // 🚀 balik ke area 1
-        startTime: Date.now(), // simpan waktu baru (untuk auto reset 12 jam)
-      })
-    );
-    alert(
-      "🎉 Anda sudah menyelesaikan patroli 5 area. " +
-        "Silakan kirim data ke server melalui menu Absen Pending."
-    );
-  }
 
-  // feedback jika belum 5 area
-  if (nextArea <= maxArea) {
-    alert(`✅ Anda sudah melakukan patroli di Area ${areaNow}.`);
-  }
+    // ✅ Update progress shift + patroli
+    const shiftId = localStorage.getItem("shiftAktif");
+    const patroli = localStorage.getItem("patroliAktif");
+    if (shiftId && patroli) {
+      const key = `progress-${shiftId}-${patroli}`;
+      let prog = JSON.parse(localStorage.getItem(key) || "{}");
+      prog.areaDone = (prog.areaDone || 0) + 1;
+      prog.pending = (prog.pending || 0) + 1;
+      localStorage.setItem(key, JSON.stringify(prog));
+    }
 
-  setTimeout(() => {
-    document.getElementById("loadingOverlay").style.display = "none";
-    // kembali ke dashboard
-    window.location.href = "../dashboard/dashboard.html";
-  }, 800);
+    // ✅ Update progress umum
+    const nextArea = areaNow + 1;
+    const progress = JSON.parse(
+      localStorage.getItem("patroliProgress") || "{}"
+    );
+
+    if (nextArea <= maxArea) {
+      localStorage.setItem(
+        "patroliProgress",
+        JSON.stringify({
+          currentArea: nextArea,
+          startTime: progress.startTime || Date.now(),
+        })
+      );
+
+      alert(
+        `✅ Area ${areaNow} (${status}) tersimpan. Anda akan diarahkan ke Jadwal Patroli.`
+      );
+    } else {
+      localStorage.setItem(
+        "patroliProgress",
+        JSON.stringify({ currentArea: 1, startTime: Date.now() })
+      );
+
+      alert("🎉 Patroli 5 area selesai. Silakan cek status di Jadwal Patroli.");
+
+      // ✅ Setelah semua area selesai, aktifkan patroli berikutnya
+      const labels = ["A", "B", "C", "D"];
+      const shiftId = localStorage.getItem("shiftAktif");
+      const patroli = localStorage.getItem("patroliAktif");
+      if (shiftId && patroli) {
+        const currentKey = `progress-${shiftId}-${patroli}`;
+        let current = JSON.parse(localStorage.getItem(currentKey) || "{}");
+        current.areaDone = 5;
+        current.pending = 0;
+        localStorage.setItem(currentKey, JSON.stringify(current));
+
+        const idx = labels.indexOf(patroli);
+        const nextLabel = labels[idx + 1];
+        if (nextLabel) {
+          const nextKey = `progress-${shiftId}-${nextLabel}`;
+          let next = JSON.parse(localStorage.getItem(nextKey) || "{}");
+          next.unlocked = true; // 🔓 patroli berikutnya aktif
+          localStorage.setItem(nextKey, JSON.stringify(next));
+        }
+      }
+    }
+
+    // ✅ Setelah alert, tampilkan overlay redirect
+    setTimeout(() => {
+      document.getElementById("loadingOverlay").style.display = "none";
+      document.getElementById("redirectOverlay").style.display = "flex";
+
+      setTimeout(() => {
+        localStorage.setItem("filterShiftByTime", "true");
+        window.location.href = "../pages/jadwalpatroli.html";
+      }, 1500);
+    }, 800);
+  };
+
+  reader.readAsDataURL(file);
 }
 
-// ==== Reset Progress ====
+// ========== CEK DISABLE ==========
+function cekDisable() {
+  const saved = localStorage.getItem(`patroliArea${areaNow}`);
+  const btn = document.getElementById("simpanBtn");
+  if (saved && btn) {
+    btn.disabled = true;
+    btn.innerText = "✔️ Sudah Disimpan";
+  } else if (btn) {
+    btn.disabled = false;
+    btn.innerText = "💾 Simpan Area";
+  }
+}
+
+// ========== RESET ==========
 function resetPatroli() {
   for (let i = 1; i <= maxArea; i++) {
     localStorage.removeItem(`patroliArea${i}`);

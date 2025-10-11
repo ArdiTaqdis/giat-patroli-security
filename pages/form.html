@@ -8,7 +8,7 @@
   </head>
   <body>
     <header class="judul">
-      <h1>Absensi Patroli 5 Area</h1>
+      <h1>📋 Absensi Patroli 5 Area</h1>
     </header>
 
     <div class="container">
@@ -42,9 +42,14 @@
       <!-- Informasi Area -->
       <div
         id="progressInfo"
-        style="text-align: center; font-weight: bold; margin-bottom: 10px"
+        style="text-align: center; font-weight: bold; margin: 15px 0"
       >
         Area <span id="areaNow">1</span> dari 5
+      </div>
+
+      <!-- Progress Bar Merah -->
+      <div class="progress">
+        <div id="progressBar" class="progress-bar">0%</div>
       </div>
 
       <div id="stepContainer">
@@ -56,14 +61,41 @@
             id="fotoPreviewMini"
             src=""
             alt="Preview Foto"
-            style="width: 100px; display: none; border-radius: 8px"
+            style="
+              width: 100px;
+              display: none;
+              border-radius: 8px;
+              margin-top: 8px;
+            "
           />
         </div>
 
+        <!-- 🟢 Tambahan: Dropdown Status -->
+        <label
+          for="statusArea"
+          style="display: block; margin-top: 10px; font-weight: bold"
+        >
+          Status Area:
+        </label>
+        <select
+          id="statusArea"
+          style="
+            width: 100%;
+            padding: 8px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+          "
+        >
+          <option value="OK">✅ OK (Aman)</option>
+          <option value="Not OK">⚠️ Not OK (Ada masalah)</option>
+        </select>
+
+        <!-- 🟢 Keterangan dengan validasi dinamis -->
         <textarea
           id="keterangan"
-          placeholder="Keterangan area"
+          placeholder="Keterangan area (jika Not OK wajib diisi)"
           rows="3"
+          style="margin-top: 10px"
         ></textarea>
 
         <!-- Tombol Simpan Per Area -->
@@ -73,8 +105,6 @@
           </button>
         </div>
       </div>
-
-      <div id="status" style="margin-top: 20px"></div>
     </div>
 
     <!-- Loading Spinner -->
@@ -94,13 +124,17 @@
     <style>
       body {
         font-family: Arial, sans-serif;
-        background: #f0f8ff;
+        background: #fff5f5;
         margin: 0;
         padding: 15px;
       }
       .judul {
         text-align: center;
         margin-bottom: 10px;
+        background: linear-gradient(135deg, #b71c1c, #e53935);
+        padding: 12px;
+        color: white;
+        border-radius: 6px;
       }
       .container {
         max-width: 500px;
@@ -113,7 +147,7 @@
       .identitas,
       .info-waktu {
         margin-top: 10px;
-        background: #f3faff;
+        background: #ffeaea;
         padding: 10px;
         border-radius: 8px;
       }
@@ -130,14 +164,18 @@
         width: 100%;
         margin-top: 15px;
         padding: 10px;
-        background-color: #2d800d;
+        background-color: #b71c1c;
         color: white;
         border: none;
         border-radius: 8px;
         cursor: pointer;
       }
       button:hover {
-        background-color: #4acc16;
+        background-color: #d32f2f;
+      }
+      button:disabled {
+        background-color: #aaa;
+        cursor: not-allowed;
       }
       #loadingOverlay,
       #redirectOverlay {
@@ -161,7 +199,7 @@
         width: 50px;
         height: 50px;
         border: 5px solid #ccc;
-        border-top: 5px solid #2196f3;
+        border-top: 5px solid #e53935;
         border-radius: 50%;
         animation: spin 1s linear infinite;
       }
@@ -173,6 +211,48 @@
           transform: rotate(360deg);
         }
       }
+
+      /* Progress bar merah */
+      .progress {
+        margin: 10px 0;
+        background: #ffcdd2;
+        border-radius: 8px;
+        overflow: hidden;
+      }
+      .progress-bar {
+        height: 20px;
+        background: #e53935;
+        width: 0%;
+        text-align: center;
+        color: white;
+        font-size: 12px;
+        line-height: 20px;
+        transition: width 0.3s;
+      }
     </style>
+    <!-- ✅ Overlay Redirect -->
+    <div
+      id="redirectOverlay"
+      style="
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.75);
+        color: white;
+        z-index: 9999;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        text-align: center;
+      "
+    >
+      <div class="spinner"></div>
+      <p style="margin-top: 15px; font-size: 1.1rem">
+        🔄 Mengalihkan ke <b>Jadwal Patroli...</b>
+      </p>
+    </div>
   </body>
 </html>
