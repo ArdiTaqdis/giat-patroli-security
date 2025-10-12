@@ -6,7 +6,7 @@
 const BASE_URL = self.registration.scope;
 
 // 🧩 Ganti versi cache setiap kali update file agar auto refresh
-const CACHE_NAME = "patroli-v7.12";
+const CACHE_NAME = "patroli-v7.13";
 
 // ✅ Daftar file penting untuk offline mode
 const STATIC_FILES = [

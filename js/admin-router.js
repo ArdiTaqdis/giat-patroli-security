@@ -1,5 +1,6 @@
 // js/admin-router.js (FINAL FIXED CLEAN SYNC VERSION)
-import dashboard, { unloadDashboard } from "./admin-dashboard.js";
+// import dashboard, { unloadDashboard } from "./admin-dashboard.js";
+import dashboard, { unloadDashboard } from "./admin-dashboard-command.js";
 import {
   loadPerusahaanShift,
   unloadPerusahaanShift,

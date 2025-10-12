@@ -39,6 +39,13 @@ export function loadCache() {
 }
 
 export async function savePetugas(petugas) {
+  const ref = doc(db, "dataUser", petugas.id);
+  const existing = cachedPetugas.find((p) => p.id === petugas.id);
+
+  // kalau sudah ada, jangan overwrite tanpa konfirmasi
+  if (existing) {
+    console.warn(`⚠️ Petugas ${petugas.id} sudah ada di Firestore.`);
+  }
   await setDoc(doc(db, "dataUser", petugas.id), petugas);
   const idx = cachedPetugas.findIndex((p) => p.id === petugas.id);
   if (idx >= 0) cachedPetugas[idx] = petugas;

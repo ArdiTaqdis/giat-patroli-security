@@ -116,6 +116,78 @@
         text-shadow: 1px 1px 3px rgba(22, 13, 13, 0.7);
         letter-spacing: 0.3px;
       }
+
+      /* === THEME ISOLATION === */
+
+      /* 🌑 Command Center Dark Mode (Dashboard Only) */
+      #dashboardSection {
+        background: radial-gradient(circle at 10% 10%, #071028 0%, #0f1b33 60%);
+        color: #e6f7ff;
+      }
+
+      /* 🌕 Light Mode untuk Semua Section Lain */
+      #petugasSection,
+      #perusahaanSection,
+      #notifikasiSection,
+      #settingsSection {
+        background: #f8f9fa;
+        color: #1a1a1a;
+      }
+
+      #petugasSection table,
+      #perusahaanSection table {
+        background: #fff;
+        color: #212121;
+      }
+
+      #petugasSection th,
+      #perusahaanSection th {
+        background: #e9ecef;
+        color: #333;
+        font-weight: 600;
+      }
+
+      #petugasSection td,
+      #perusahaanSection td {
+        color: #222;
+      }
+
+      /* Input dan form control */
+      #petugasSection input,
+      #petugasSection select,
+      #petugasSection textarea,
+      #perusahaanSection input,
+      #perusahaanSection select,
+      #perusahaanSection textarea {
+        color: #212121;
+        background-color: #fff;
+        border: 1px solid #ccc;
+      }
+
+      /* Kartu putih */
+      #petugasSection .card,
+      #perusahaanSection .card {
+        background: #fff;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+        border-radius: 8px;
+      }
+
+      /* Tombol tetap kontras */
+      #petugasSection .btn,
+      #perusahaanSection .btn {
+        color: #fff;
+        font-weight: 500;
+      }
+
+      /* Header teks tegas */
+      #petugasSection h3,
+      #perusahaanSection h3 {
+        color: #333;
+        font-weight: 700;
+      }
+      .content {
+        transition: background 0.4s ease, color 0.3s ease;
+      }
     </style>
   </head>
 
